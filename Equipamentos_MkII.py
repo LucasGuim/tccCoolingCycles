@@ -796,17 +796,16 @@ class Ciclo:
         self.VarExterno[i] = VasaoAR
 
         if Tsr != 0: # caso haja subresfriamento
-            self.T[i] = Tcond - Tsr
-            self.p[i] = Prop("P", "T", Tcond, "Q", 1, self.fluid)/1e3
-            self.h[i] = Prop("H", "T", self.T[i], "P", self.p[i]*1e3, self.fluid)/1e3
-            self.s[i] = Prop("S", "T", self.T[i], "P", self.p[i]*1e3, self.fluid)/1e3
+            self.T[i] = Prop("T", "P", self.p[j]*1e3, "Q", 0, self.fluid)/1e3 - Tsr
+            self.p[i] = self.p[j]
+            self.h[i] = Prop("H", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
+            self.s[i] = Prop("S", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
 
         else: # caso nao haja subresfriamento
-            self.T[i] = Tamb + DELTA_Tl
-            self.p[i] = Prop('P', 'T', self.T[i], 'Q', 0, self.fluid)/1e3
-            self.h[i] = Prop('H', 'T', Tamb+DELTA_Tl, 'Q', 0, self.fluid)/1e3
-            self.s[i] = Prop('S', 'T', Tamb+DELTA_Tl, 'Q', 0, self.fluid)/1e3
-        
+            self.T[i] = Prop("T", "P", self.p[j]*1e3, "Q", 0, self.fluid)/1e3 
+            self.p[i] = self.p[j]
+            self.h[i] = Prop("H", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
+            self.s[i] = Prop("S", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
         if j == 0:
             if i==1:
                 j=i-2
