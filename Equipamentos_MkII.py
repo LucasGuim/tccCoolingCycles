@@ -902,3 +902,9 @@ class Ciclo:
             self.s[2] = Prop("S", "T", self.T[2], "P", self.p[2]*1e3, self.fluid)/1e3
         except:
             self.s[2] = Prop("S", "H", self.h[2]*1e3, "P", self.p[2]*1e3, self.fluid)/1e3
+
+    def Resultados(self):
+        trabalhoCompressor = self.h[2] - self.h[1]
+        calorUtil = self.h[1] - self.h[4]
+        COP = calorUtil/trabalhoCompressor
+        return COP

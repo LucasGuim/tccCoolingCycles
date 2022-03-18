@@ -19,8 +19,8 @@ criar_planilhas = True
 # PARAMETROS PADRAO ------------------------------------------------
 
 # Do equipamento em analise:
-mArCond = 0.5683 # vasao massica de ar no condensador
-mArEvap = 0.2552 # vasao massica de ar no evaporador
+mArCond = 0.5683 # vasao massica de ar externo trocando calor  no condensador
+mArEvap = 0.2552 # vasao massica de ar no ambiente interno trocando calor no evaporador
 capacidadeFrigorifica = 2.64
 trabalhoCompressor = 0.74
 efetividadesCondensador = [0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1] 
@@ -30,7 +30,7 @@ temperaturaAmbRefrigerado = 17 + 273.15
 precisao = 0.9999 # 99,99% de precisao
 
 # Refrigerantes selecionados + R410a do equipamento selecionado
-refrigerantes = ['R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a']
+refrigerantes = ['R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a','Water']
 
 # Temperaturas externas de 30 a 40 C
 temperaturasExterna =  35+273.15
