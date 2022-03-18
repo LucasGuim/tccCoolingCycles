@@ -8,7 +8,7 @@ from openpyxl.chart import (
     Series
 )
 import os
-def CicloCompressaoDeVapor (fluido,t_evap ,t_cond, vazao_refrigerante):
+def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap ,t_cond, vazao_refrigerante,t_superA='sat'):
     '''
         Descricao:
             
@@ -19,6 +19,7 @@ def CicloCompressaoDeVapor (fluido,t_evap ,t_cond, vazao_refrigerante):
             t_cond: Temperatura do refrigerante no condenssador [K]
             t_evap: Temperatura do refrigerante no evaporador [K]
             vazao_refrigerante: fluxo do refrigerante 
+            t_superA: Temperatura de superaquecimento K 
 
         
     '''
@@ -26,7 +27,7 @@ def CicloCompressaoDeVapor (fluido,t_evap ,t_cond, vazao_refrigerante):
     
 
     ciclo = Ciclo(4,fluido)
-    ciclo.Evapout(1,'sat','sat',t_evap)
+    ciclo.Evapout(1,'sat',t_superA,t_evap)
     P_alta = (Prop('P','T',t_cond,'Q',0,fluido))/1e3
     ciclo.Compress(2,P_alta,1,1)
     ciclo.Condout(3,2,P_alta,'sat')
@@ -38,7 +39,7 @@ def CicloCompressaoDeVapor (fluido,t_evap ,t_cond, vazao_refrigerante):
     Cop = ciclo.Resultados()
     print('COP',Cop)
     ciclo.Exibir('h','p','s')
-CicloCompressaoDeVapor('R134a',253,313,0.03)
+CicloCompressaoDeVaporComTemperaturas('R134a',253,313,0.03)
 
 
   

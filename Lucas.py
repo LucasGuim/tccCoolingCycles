@@ -19,18 +19,18 @@ criar_planilhas = True
 # PARAMETROS PADRAO ------------------------------------------------
 
 # Do equipamento em analise:
-mArCond = 0.5683 # vasao massica de ar externo trocando calor  no condensador
+mArCondExterno = [0.28415,0.4262,0.5683,0.7103,0.85245] # vasao massica de ar externo trocando calor  no condensador
 mArEvap = 0.2552 # vasao massica de ar no ambiente interno trocando calor no evaporador
 capacidadeFrigorifica = 2.64
 trabalhoCompressor = 0.74
-efetividadesCondensador = [0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1] 
+efetividadeCondensador = 0.8 
 efetividadeEvaporador = 0.8 # valor suposto
 eficienciaIsentropica = 0.8 # valor suposto
 temperaturaAmbRefrigerado = 17 + 273.15
 precisao = 0.9999 # 99,99% de precisao
 
 # Refrigerantes selecionados + R410a do equipamento selecionado
-refrigerantes = ['R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a','Water']
+refrigerantes = ['R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a','Water','R134a']
 
 # Temperaturas externas de 30 a 40 C
 temperaturasExterna =  35+273.15
@@ -207,13 +207,13 @@ def capacidadeFrigSemSaSr():
 
     for refrigerante in refrigerantes:
         parametros[refrigerante] = []
-        for efetividadeCondensador in efetividadesCondensador:
+        for mArCond in mArCondExterno:
             dados = []
             ciclo, erro = CicloCompressaoDeVapor_1Estagio(refrigerante,efetividadeCondensador, efetividadeEvaporador,
                 eficienciaIsentropica, temperaturasExterna, temperaturaAmbRefrigerado, mArCond, mArEvap, 
                 capacidade_f=capacidadeFrigorifica)
             ciclo.Exibir("T", 'p', 'h', 'm', 's')
-            FluxoRef = ciclo.m[1]
+            
             CF = ciclo.calculoEvapRefrigeracaoEfetividade(1,4)
             WC = ciclo.TrabC()
             COP = ciclo.COP(1)
@@ -221,7 +221,7 @@ def capacidadeFrigSemSaSr():
             dados.append(round(CF, 4))
             dados.append(round(WC, 4))
             dados.append(round(COP, 4))
-            dados.append(round(FluxoRef,5))
+            
             
             parametros[refrigerante].append(dados)
 
@@ -239,7 +239,7 @@ def trabalhoSemSaSr():
     parametros = {}
     for refrigerante in refrigerantes:
         parametros[refrigerante] = []
-        for efetividadeCondensador in efetividadesCondensador:
+        for mArCond in mArCondExterno:
             dados = []
             ciclo, erro = CicloCompressaoDeVapor_1Estagio(refrigerante, efetividadeCondensador, 
                 efetividadeEvaporador, eficienciaIsentropica, temperaturasExterna, temperaturaAmbRefrigerado, 
@@ -375,7 +375,7 @@ def criarPlanilhaSemSaSr(DictParametros, nome):
 
         for value in DictParametros[key]:
             coluna += 1
-            sheet[chr(coluna)+str(linha)] = efetividadesCondensador[contador] 
+            sheet[chr(coluna)+str(linha)] = round(mArCondExterno[contador]/0.5683*100,0)
             sheet[chr(coluna)+str(linha+1)] = value[0]
             sheet[chr(coluna)+str(linha+2)] = value[1]
             sheet[chr(coluna)+str(linha+3)] = value[2]
@@ -386,9 +386,9 @@ def criarPlanilhaSemSaSr(DictParametros, nome):
     chartCOP.height = 12
     chartCOP.width = 25
     chartCOP.y_axis.title = "COP"
-    chartCOP.x_axis.title = "Efetividade do condensador"
+    chartCOP.x_axis.title = "Vazão de ar externo no condensador"
 
-    maxCol = len(efetividadesCondensador)+1
+    maxCol = len(mArCondExterno)+1
 
     start = 4
     for i in range(len(chaves)):
