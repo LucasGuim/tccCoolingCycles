@@ -1,4 +1,4 @@
-
+from tkinter import *
 import CoolProp
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
@@ -13,7 +13,7 @@ from openpyxl.chart import (
     Series
 )
 import os
-def CicloCompressaoDeVaporComTemperaturas (fluido, vazao_refrigerante,t_superA='sat'):
+def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante=0,t_superA='sat'):
     '''
         Descricao:
             
@@ -21,19 +21,20 @@ def CicloCompressaoDeVaporComTemperaturas (fluido, vazao_refrigerante,t_superA='
         Parametros:
             fluido: Fluido refrigerante
             eficiencia_is: Eficiencia isentropica do compressor
-            t_cond: Temperatura do refrigerante no condenssador [K]
-            t_evap: Temperatura do refrigerante no evaporador [K]
-            vazao_refrigerante: fluxo do refrigerante 
+            Pc: Pressão no condenssador kPa
+            Pe: Pressão no evaporador kPa
+            vazao_refrigerante: fluxo do refrigerante kg/s 
             t_superA: Temperatura de superaquecimento K 
 
         
     '''
-    t_evap = int(input("Entre com a temperatura do refrigerante no evaporador em K :"))
-    t_cond=int(input("Entre com a temperatura do refrigerante no condensador em K :"))
+    # t_evap = int(input("Entre com a temperatura do refrigerante no evaporador em K :"))
+    # t_cond=int(input("Entre com a temperatura do refrigerante no condensador em K :"))
 
     
     
     ciclo = Ciclo(4,fluido)
+    ciclo.T[1]=t_evap
     ciclo.Evapout(1,'sat',t_superA,t_evap)
     P_alta = (Prop('P','T',t_cond,'Q',0,fluido))/1e3
     ciclo.Compress(2,P_alta,1,1)
@@ -43,17 +44,33 @@ def CicloCompressaoDeVaporComTemperaturas (fluido, vazao_refrigerante,t_superA='
     m = vazao_refrigerante
     ciclo.SetMass(1,m)
     ciclo.Tub(1,2,3,4)
-    Cop = ciclo.Resultados()
-    print('COP',Cop)
-    ciclo.Exibir('h','p','s')
+    Cop = ciclo.ResultadosCop()
+    Wb = ciclo.ResultadosWc()*m
+    Cf = ciclo.ResultadosCf()*m
+    print(f'Wb:{Wb} kW, CF:{Cf} kW, COP: {Cop} ')
+    ciclo.Exibir('h','p','s','T','x')
     print(ciclo.T[1])
     
     
-    
-
-CicloCompressaoDeVaporComTemperaturas('R134a',0.03)
+CicloCompressaoDeVaporComTemperaturas('R12',258,318,1) 
 
 
+
+# janela = Tk()
+
+
+
+
+
+# janela.title("Cotações em tempo real: ")
+# titulo = Label(janela,text='Clique no botão para atualizar as cotações das moedas. ',padx=10)
+# titulo.grid(column=0,row=0,pady=10)
+# botão = Button(janela,text='Executar',command=pegar_cotacoes,pady=5,padx=5)
+# botão.grid(column=0,row=1)
+# cotacoes = Label(janela,text='',pady=10)
+# cotacoes.grid(column=0,row=2,)
+
+# janela.mainloop()
   
 
 

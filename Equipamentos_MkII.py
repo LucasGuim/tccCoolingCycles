@@ -271,19 +271,7 @@ class Ciclo:
         return self.Wt
 
     # Trabalho do compressor
-    def TrabC(self):
-        self.Wc = 0
-        for i in self.wc:
-            if self.y[i] != '-':
-                self.Wc += self.wc[i]*self.y[i]
-                #print('Trabalho calculado usando fracao massica')
-            elif self.m[i] != '-':
-                self.Wc += self.wc[i]*self.m[i]
-                #print('Trabalho calculado usando vazao massica ', end="")
-            else:
-                self.Wc += self.wc[i]
-                #print('Trabalho calculado supondo fluxo unico no ciclo')
-        return self.Wc
+    
     
     def rend(self):
         Q=0
@@ -766,18 +754,7 @@ class Ciclo:
                     self.m[c-1] = sol[k]
         print(sol)
 
-    def COP(self,l):
-        trabalho = self.TrabC()
-        #print ("%0.5f kW" %trabalho)
-        if self.m[l] != '-':
-            Cop = self.q[l]*self.m[l]/trabalho
-        elif self.y[l] != '-':
-            Cop = self.q[l]*self.y[l]/self.TrabC()
-        else:
-            Cop = self.q[l]/self.TrabC()
-        #    print('Calculo do COP realizado supondo unico fluxo')
-        #print(f'COP Calculado do ciclo: {round(Cop,4)}')
-        return round(Cop,4)
+    
 
         
     # Condensador de refrigeração com eficiencia
@@ -903,8 +880,14 @@ class Ciclo:
         except:
             self.s[2] = Prop("S", "H", self.h[2]*1e3, "P", self.p[2]*1e3, self.fluid)/1e3
 
-    def Resultados(self):
+    def ResultadosCop(self):
         trabalhoCompressor = self.h[2] - self.h[1]
         calorUtil = self.h[1] - self.h[4]
         COP = calorUtil/trabalhoCompressor
         return COP
+    def ResultadosWc(self):
+        trabalhoCompressor = self.h[2] - self.h[1]
+        return trabalhoCompressor
+    def ResultadosCf(self):
+        cargaFrigorifica = self.h[1] - self.h[4]
+        return cargaFrigorifica
