@@ -62,7 +62,7 @@ class TelaPython:
     def __init__(self):
         layout = [
             [sg.Text('Calcule a eficiência do seu ciclo de refrigeração  ')],
-            [sg.Combo(values=('R134a','Water'),key='Combo')],           
+            [sg.Combo(values=('R134a','Water','R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a'),key='Combo')],           
             [sg.Text('Temperatura do refrigerante no evaporador em °C:'),sg.Input(key='Te',size=(5,5))],
             [sg.Text('Temperatura do refrigerante no condensador em °C:'),sg.Input(key='Tc',size=(5,5))],
             [sg.Text('É um ciclo Cascata ?')],
