@@ -1,5 +1,9 @@
-from tkinter import *
+
+from tkinter import Label
+from tkinter.ttk import Button
 import CoolProp
+from kivy.app import App
+from kivy.lang import Builder
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 from CoolProp.Plots import PropertyPlot
@@ -13,7 +17,7 @@ from openpyxl.chart import (
     Series
 )
 import os
-def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante=0,t_superA='sat'):
+def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante,t_superA='sat'):
     '''
         Descricao:
             
@@ -21,20 +25,18 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
         Parametros:
             fluido: Fluido refrigerante
             eficiencia_is: Eficiencia isentropica do compressor
-            Pc: Pressão no condenssador kPa
-            Pe: Pressão no evaporador kPa
-            vazao_refrigerante: fluxo do refrigerante kg/s 
+            t_cond: Temperatura do refrigerante no condenssador [K]
+            t_evap: Temperatura do refrigerante no evaporador [K]
+            vazao_refrigerante: fluxo do refrigerante 
             t_superA: Temperatura de superaquecimento K 
 
         
     '''
-    # t_evap = int(input("Entre com a temperatura do refrigerante no evaporador em K :"))
-    # t_cond=int(input("Entre com a temperatura do refrigerante no condensador em K :"))
+   
 
     
     
     ciclo = Ciclo(4,fluido)
-    ciclo.T[1]=t_evap
     ciclo.Evapout(1,'sat',t_superA,t_evap)
     P_alta = (Prop('P','T',t_cond,'Q',0,fluido))/1e3
     ciclo.Compress(2,P_alta,1,1)
@@ -44,33 +46,47 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     m = vazao_refrigerante
     ciclo.SetMass(1,m)
     ciclo.Tub(1,2,3,4)
-    Cop = ciclo.ResultadosCop()
-    Wb = ciclo.ResultadosWc()*m
-    Cf = ciclo.ResultadosCf()*m
-    print(f'Wb:{Wb} kW, CF:{Cf} kW, COP: {Cop} ')
-    ciclo.Exibir('h','p','s','T','x')
+    Cop = ciclo.Resultados()
+    print('COP',Cop)
+    ciclo.Exibir('h','p','s')
     print(ciclo.T[1])
     
     
-CicloCompressaoDeVaporComTemperaturas('R12',258,318,1) 
+    
+
+#CicloCompressaoDeVaporComTemperaturas('R134a',0.03)
+import PySimpleGUI as sg
 
 
+class TelaPython:
+    def __init__(self):
+        layout = [
+            [sg.Text('Calcule a eficiência do seu ciclo de refrigeração  ')],
+            [sg.Combo(values=('R134a','Water'),key='Combo')],           
+            [sg.Text('Temperatura do refrigerante no evaporador em °C:'),sg.Input(key='Te',size=(5,5))],
+            [sg.Text('Temperatura do refrigerante no condensador em °C:'),sg.Input(key='Tc',size=(5,5))],
+            [sg.Text('É um ciclo Cascata ?')],
+            [sg.Radio('Sim','Cascata',key='temPrIntermediaria'),sg.Radio('Não','Cascata',key='naoTemPintermediaria')],
+            [sg.Text('Pressão intermediária'),sg.Input(key='Pint')],
+            [sg.Button('Enviar')],
+            [sg.Output(size=(40,15))]
+        ]
+        self.janela = sg.Window("Formulário da madrugada").layout(layout)
 
-# janela = Tk()
-
-
-
-
-
-# janela.title("Cotações em tempo real: ")
-# titulo = Label(janela,text='Clique no botão para atualizar as cotações das moedas. ',padx=10)
-# titulo.grid(column=0,row=0,pady=10)
-# botão = Button(janela,text='Executar',command=pegar_cotacoes,pady=5,padx=5)
-# botão.grid(column=0,row=1)
-# cotacoes = Label(janela,text='',pady=10)
-# cotacoes.grid(column=0,row=2,)
-
-# janela.mainloop()
-  
-
-
+        
+    def Iniciar (self):
+        while True:
+            self.button,self.values = self.janela.Read()
+            TemperaturaEvaporador = int(self.values['Te']) + 273
+            TemperaturaCondensador = int(self.values['Tc']) + 273
+            Fluido = self.values['Combo']
+            if self.values['temPrIntermediaria'] == True:
+                tem_PrIntermediaria = 'Sim'
+            else:
+                tem_PrIntermediaria = 'Não'
+            CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=0,vazao_refrigerante=1)
+            
+            
+            
+tela = TelaPython()
+tela.Iniciar()
