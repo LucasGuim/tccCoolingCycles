@@ -1,23 +1,17 @@
-# -*- coding: cp1252 -*-
-# 
-## ESTADOS TERMODINAMICOS DO FLUIDO ##
 
-Cp_ar = 1.005 # kj/kgK
 
 from CoolProp.CoolProp import PropsSI as Prop
 
 '''
 Funcao Prop usada para ter as propriedades do fluido
-    Prop(arg1, arg2, arg3, arg4, arg5, arg6)
-    arg1        = propriedade desejada
-    arg2 e arg4 = propriedades informadas
-    arg3 e arg5 = valores das propriedades informadas
-    arg6        = fluido usado
+    Prop(PropriedadeRetornada, arg1, ValorArg1, arg2, ValorArg2, fluido)
+    P = Pa
+    H = J/kg
     
 Codigos para argumentos
     P pressao (pode usar 'sat' para a pressao de saturacao)
     T temperatura (pode usar 'sat' para temperatura de saturacao)
-    Q fracao de vapor
+    Q título 
     H entalpia por unidade de massa
     S entropia por unidade de massa
     D densidade massica
@@ -35,116 +29,36 @@ class Ciclo:
         self.x=['Titulo:']+["-"]*n
         self.y=['Fracao massica']+["-"]*n
         self.m=['Vazão mássica']+["-"]*n
-        self.sang = -1  # ?
-        self.yc=[]      # ?
-        self.equip={}   # ? usado apenas em alguns
-        self.wt={}      # trabalho da turbina
-        self.wb={}      # trabalho da bomba
-        self.q={}       # calor trocado
-        self.wc={}      # trabalho compressor
-        self.n={}       # eficiencia
-        self.Texterna = {} # temperatura ambientes
-        self.VarExterno = {} # vasao de ar externo no trocador de calor
+        self.wc=['Trabalho do compressor']+["-"]*n
+       
         
-    # Caldeira
-    def caldout(self,i,j=0,P='sat',T='sat'):
-        k = 0
-        self.equip[i] = 'Caldeira'
-        
-        # Pressão e fracao massica (sempre igual a 1 toda a massa passa pela caldeira) 
-        # na entrada e saida da caldeira (iguais)
-        if P == 'sat':
-            k += 1
-            P = Prop('P','T',T,'Q',1,self.fluid)/1e3
-            if i == 1:
-                if j == 0:
-                    self.p[i] = self.p[i-2] = P
-                    self.y[i] = self.y[i-2] = 1
-                else:
-                    self.p[i] = self.p[j] = P
-                    self.y[i] = self.y[j] = 1
+       
+    # Evaporador
+    def Evapout(self,i,Pl='sat',Tsa ='sat', T = 0):
+        # Pl pressao low kPa | Tsa temperatura se super aquecimento
+        if Pl == 'sat':
+            self.p[i] = Prop('P','T',T,'Q',1,self.fluid)/1e3 # não temos o T passado no Prop, eh necessario pedir na funcao
+            Pl = self.p[i]
+            self.h[i] = Prop('H','P',Pl*1e3,'Q',1,self.fluid)/1e3
+            self.s[i] = Prop('S','P',Pl*1e3,'Q',1,self.fluid)/1e3
+        else:        
+            if Tsa == 'sat':
+                self.T[i] = Prop('T','P',Pl*1e3,'Q',1,self.fluid)
+                self.h[i] = Prop('H','P',Pl*1e3,'Q',1,self.fluid)/1e3
+                self.s[i] = Prop('S','P',Pl*1e3,'Q',1,self.fluid)/1e3
             else:
-                if j == 0:
-                    self.p[i] = self.p[i-1] = P
-                    self.y[i] = self.y[i-1] = 1
-                else:
-                    self.p[i] = self.p[i-1] = P
-                    self.y[i] = self.y[i-1] = 1
+                self.T[i] = Prop('T','P',Pl*1e3,'Q',1,self.fluid) + Tsa
+                self.h[i] = Prop('H','P',Pl*1e3,'T',self.T[i],self.fluid)/1e3
+                self.s[i] = Prop('S','P',Pl*1e3,'T',self.T[i],self.fluid)/1e3
+        if i == 1:
+            self.p[i] = self.p[i-2] = Pl
+            if self.h[i-2] != '-':
+                self.q[i] = self.h[i] - self.h[i-2]
         else:
-            if i == 1:
-                if j == 0:
-                    self.p[i] = self.p[i-2] = P
-                    self.y[i] = self.y[i-2] = 1
-                else:
-                    self.p[i] = self.p[j] = P
-                    self.y[i] = self.y[j] = 1
-            else:
-                if j == 0:
-                    self.p[i] = self.p[i-1] = P
-                    self.y[i] = self.y[i-1] = 1
-                else:
-                    self.p[i] = self.p[j] = P
-                    self.y[i] = self.y[j] = 1
-                    
-        # Temperatura na saida da caldeira
-        if T == 'sat':
-            k +=1
-            T = Prop('T','P',P*1e3,'Q',1,self.fluid)
-            self.T[i] = T
-        else:
-            self.T[i] = T
-            
-        # Entalpia e entropia na saida da caldeira
-        if k == 0:
-            # Caso vapor super aquecido
-            self.h[i] = Prop('H','P',P*1e3,'T',T,self.fluid)/1e3
-            self.s[i] = Prop('S','P',P*1e3,'T',T,self.fluid)/1e3
-        else:
-            # Caso vapor saturado
-            self.h[i] = Prop('H','P',P*1e3,'Q',1,self.fluid)/1e3
-            self.s[i] = Prop('S','P',P*1e3,'Q',1,self.fluid)/1e3
-
-    def turbina(self,i,j,P,T=0,n=1):
-        # i e j posicoes depois e antes da turbina respectivamente
-        self.equip[i] = 'Turbina'
-        if T == 0:
-            
-            if self.h[i] == '-':
-                self.sang += 1
-            else:
-                self.sang = self.sang
-                
-            self.p[i] = P
-            self.s[i] = self.s[j]
-            self.x[i] = Prop('Q','P',P*1e3,'S',self.s[i]*1e3,self.fluid)
-            self.h[i] = Prop('H','P',P*1e3,'S',self.s[i]*1e3,self.fluid)/1e3
-            self.T[i] = Prop('T','P',P*1e3,'S',self.s[i]*1e3,self.fluid)
-            wi = self.h[j] - self.h[i] # trabalho ideal
-            wt = round(wi*n,2)         # trabalho real (duas casas decimais)
-            self.n[i] = n              # eficiencia do equipamento
-            self.wt[i] = wt
-            
-        else:
-            self.T[i] = T
-            if self.h[i] == '-':
-                self.sang += 1
-            else:
-                self.sang = self.sang
-            self.p[i] = P
-            self.x[i] = Prop('Q','P',P*1e3,'T',T,self.fluid)
-            self.h[i] = Prop('H','P',P*1e3,'T',T,self.fluid)/1e3
-            self.s[i] = Prop('S','P',P*1e3,'T',T,self.fluid)/1e3
-            wt = self.h[j] - self.h[i]
-            self.wt[i] = wt
-            si = self.s[j]      # entropia out ideal = entropia in
-            hi = Prop('H','P',P*1e3,'S',si*1e3,self.fluid)/1e3 
-                                # entalpia ideal usando a entropia ideal
-            wi = self.h[j] - hi
-            n = wt/wi           # calculo da eficiencia
-            self.n[i] = n
-        return wt
-
-    # Saida do condensador
+            self.p[i-1] = self.p[i] = Pl
+            if self.h[i-1] != '-':
+                self.q[i] = self.h[i]-self.h[i-1]
+    #Condensador
     def Condout(self,i,j=0,P='sat',T='sat'):
         # P em kPa 
         # i saida 
@@ -152,7 +66,8 @@ class Ciclo:
         # dados na saida do condensador
         
         k = 0
-        self.equip[i] = 'Condensador'
+        self.x[i] = 0
+        
         if P == 'sat':
             # salvando pressao igual antes e depois do condensador
             k += 1
@@ -235,16 +150,7 @@ class Ciclo:
             self.wb[i] = wb
         return wb
 
-    # Calor por unidade de massa
-    def CalEsp(self,i,j=0):
-        if j == 0:
-            if i == 1:
-                self.q[i] = self.h[i] - self.h[i-2]
-            else:
-                self.q[i] = self.h[i] - self.h[i-1]
-        else:
-            self.q[i] = self.h[i] - self.h[j]
-        return self.q[i]
+    
 
     # Trabalho das bombas do ciclo
     def TrabB(self):
@@ -257,58 +163,7 @@ class Ciclo:
                     self.y[i] = self.y[i-1]
             self.Wb += self.wb[i]*self.y[i]
         return self.Wb
-
-    # Trabalho das turbinas do ciclo
-    def TrabT(self):
-        self.Wt = 0
-        sf = 0
-        for i in self.wt:
-            if self.y[i] != '-':
-                sf += self.y[i]
-        for i in self.wt:
-            if self.y[i] == '-':
-                self.y[i] = 1 - sf
-            self.Wt += self.wt[i]*self.y[i]
-        return self.Wt
-
-    # Trabalho do compressor
-    def TrabC(self):
-        self.Wc = 0
-        for i in self.wc:
-            if self.y[i] != '-':
-                self.Wc += self.wc[i]*self.y[i]
-                #print('Trabalho calculado usando fracao massica')
-            elif self.m[i] != '-':
-                self.Wc += self.wc[i]*self.m[i]
-                #print('Trabalho calculado usando vazao massica ', end="")
-            else:
-                self.Wc += self.wc[i]
-                #print('Trabalho calculado supondo fluxo unico no ciclo')
-        return self.Wc
-    
-    def rend(self):
-        Q=0
-        for i in self.q:
-            Q += self.q[i]
-        self.rend = (self.TrabT() - self.TrabB() - self.TrabC())/Q
-        return self.rend
-
-    def AC(self,i,j,k):
-        fluxo = 0
-        self.p[i] = self.p[k] = self.p[j]
-        self.h[i] = Prop('H','P',self.p[i]*1e3,'Q',0,self.fluid)/1e3
-        if len(self.yc) == 0:
-            self.y[j] = (self.h[i]-self.h[k])/(self.h[j]-self.h[k])
-            self.y[i] = 1
-            self.y[k] = 1 - self.y[j]
-            self.yc.append(self.y[j])
-        else:
-            for i in range(len(self.yc)):
-                fluxo += self.yc[i]
-            self.y[j] = (1 - fluxo)*(self.h[i]-self.h[k])/(self.h[j]-self.h[k])
-            self.y[i] = fluxo
-            self.y[k] = self.y[i] - self.y[j]
-            self.yc.append(self.y[j])
+  
 
     # Valvula de expansao
     def VE(self,i,P=None,j=0):
@@ -322,7 +177,8 @@ class Ciclo:
         self.h[i] = self.h[j]
         self.y[i] = self.y[j]
         self.s[i] = Prop('S','H',self.h[i]*1e3,'P',self.p[i]*1e3,self.fluid)/1e3
-        self.T[i] = Prop('T','Q',0,'P',self.p[i]*1e3,self.fluid)
+        self.T[i] = Prop('T','H',self.h[i]*1e3,'P',self.p[i]*1e3,self.fluid)
+        self.x[i] = Prop('Q','H',self.h[i]*1e3,'P',self.p[i]*1e3,self.fluid)
 
     def ASi(self,m,ti,to,r=0):
         # igualando pressao do duto para caldeira
@@ -381,31 +237,7 @@ class Ciclo:
             else:
                 self.y[ti] = ((self.h[to]-self.h[r])*self.y[r] + self.h[m] - self.h[m-1])/(self.h[ti]-self.h[to])
 
-    # Saida do evaporador
-    def Evapout(self,i,Pl='sat',Tsa ='sat', T = 0):
-        # Pl pressao low kPa | Tsa temperatura se super aquecimento
-        if Pl == 'sat':
-            self.p[i] = Prop('P','T',T,'Q',1,self.fluid)/1e3 # não temos o T passado no Prop, eh necessario pedir na funcao
-            Pl = self.p[i]
-            self.h[i] = Prop('H','P',Pl*1e3,'Q',1,self.fluid)/1e3
-            self.s[i] = Prop('S','P',Pl*1e3,'Q',1,self.fluid)/1e3
-        else:        
-            if Tsa == 'sat':
-                self.T[i] = Prop('T','P',Pl*1e3,'Q',1,self.fluid)
-                self.h[i] = Prop('H','P',Pl*1e3,'Q',1,self.fluid)/1e3
-                self.s[i] = Prop('S','P',Pl*1e3,'Q',1,self.fluid)/1e3
-            else:
-                self.T[i] = Prop('T','P',Pl*1e3,'Q',1,self.fluid) + Tsa
-                self.h[i] = Prop('H','P',Pl*1e3,'T',self.T[i],self.fluid)/1e3
-                self.s[i] = Prop('S','P',Pl*1e3,'T',self.T[i],self.fluid)/1e3
-        if i == 1:
-            self.p[i] = self.p[i-2] = Pl
-            if self.h[i-2] != '-':
-                self.q[i] = self.h[i] - self.h[i-2]
-        else:
-            self.p[i-1] = self.p[i] = Pl
-            if self.h[i-1] != '-':
-                self.q[i] = self.h[i]-self.h[i-1]
+    
 
     # Condensador refrigeracao
     def CondRef(self,i,Ph,Tsr='sat', eficiencia = 1, Tamb=0, VasaoTamb=0):
@@ -438,7 +270,7 @@ class Ciclo:
         
             self.p[i] = P
             if self.h[i] == '-':  # usa a eficiencia isentropica
-                self.n[i] = Nis
+                
                 if j == 0:
                     if i == 1:
                         self.s[i] = self.s[i-2]
@@ -515,47 +347,59 @@ class Ciclo:
         for i in kargs:
             if self.y[i] == '-':
                 self.y[i] = 1 - sf
-
-    def Tflash(self,l,v,*args,P=0):
+    def CameraMistura(self,i,l,Vflash):
+        # i estado de saida, l entrada vinda do primero compressor e Vflash é o fluxo vindo da camera de flash 
+        fracMass = self.x[Vflash-3]
+        self.h[i] = fracMass*self.h[Vflash] + (1-fracMass)*self.h[l]
+        self.p[i] = self.p[l]
+        self.s[i] = Prop('S','P',self.p[i]*1e3,'H',self.h[i]*1e3,self.fluid)
+        return 
+    def Tflash(self,l,v,*entrada,P=0):
+        #entrada são uma tupla de pontos de entrada
+        #l e v são os pontos de saida liquido e vapor 
         # CASO O PARAMETRO P NAO SEJA PASSADO, HAVERA UMA VERIFICAÇÃO
         # PARA IDENTIFICAR SE ALGUM DOS PONTOS POSSUI UMA PRESSÃO DEFINIDA
         # IGUALANDO-A PARA TODOS OS PONTOS DO TFLASH
+        
         if P == 0:
             if self.p[l] != '-':
                 ptf = self.p[l]
-                for i in args:
+                for i in entrada:
                     self.p[i] = ptf
                 self.p[v] = ptf
                 P = ptf
-            elif self.p[v] != '-':  # troquei para elif, faz mais sentido (Victor)
+            elif self.p[v] != '-':  
                 ptf = self.p[v]
-                for i in args:
+                for i in entrada:
                     self.p[i] = ptf
                 self.p[l] = ptf
                 P = ptf
             else:
                 ptf = '-'
-                for k in args:
+                for k in entrada:
                     if self.p[k] != '-':
                         ptf = self.p[k]
-                for i in args:
+                for i in entrada:
                     self.p[i] = ptf
                 self.p[v] = ptf
                 self.p[l] = ptf
                 P = ptf
         else:
-            for k in args:
+            for k in entrada:
+                
                 self.p[k] = P
             self.p[l] = P
             self.p[v] = P
         # CALCULANDO OS ESTADOS DE SAIDA SATURADOS
         self.h[l]=Prop('H','P',P*1e3,'Q',0,self.fluid)/1e3
         self.h[v]=Prop('H','P',P*1e3,'Q',1,self.fluid)/1e3
+        self.s[l]=Prop('S','P',P*1e3,'Q',0,self.fluid)/1e3
+        self.s[v]=Prop('S','P',P*1e3,'Q',1,self.fluid)/1e3
         
         
         ## ANALISANDO QTDE DE VARIAVEIS ##
-        if len(args) == 1:
-            for i in args:
+        if len(entrada) == 1:
+            for i in entrada:
                 self.y[l] = (self.h[i] - self.h[v])/(self.h[l]-self.h[v])
                 self.y[v] = 1 - self.y[l]
                 self.y[i] = 1
@@ -571,21 +415,21 @@ class Ciclo:
         else:
             if self.m[l] == '-':
                 if self.m[v] == '-':
-                    self.m[v] = (self.h[args[0]]*self.m[args[0]] + self.h[args[1]]*self.m[args[1]] - self.h[l]*(self.m[args[0]]+self.m[args[1]]))/(self.h[v]-self.h[l])
-                    self.m[l] = self.m[args[0]] + self.m[args[1]] - self.m[v]
-                if self.m[args[0]] == '-':
-                    self.m[args[0]] = (self.h[v]*self.m[v] - self.h[args[1]]*self.m[args[1]] + self.h[l]*(self.m[args[1]]-self.m[v]))/(self.h[args[0]]-self.h[l])
-                    self.m[l] = self.m[args[0]] + self.m[args[1]] - self.m[v]
-                if self.m[args[1]] == '-':
-                    self.m[args[1]] = (self.h[v]*self.m[v] - self.h[args[0]]*self.m[args[0]] + self.h[l]*(self.m[args[0]]-self.m[v]))/(self.h[args[1]]-self.h[l])
-                    self.m[l] = self.m[args[0]] + self.m[args[1]] - self.m[v]
+                    self.m[v] = (self.h[entrada[0]]*self.m[entrada[0]] + self.h[entrada[1]]*self.m[entrada[1]] - self.h[l]*(self.m[entrada[0]]+self.m[entrada[1]]))/(self.h[v]-self.h[l])
+                    self.m[l] = self.m[entrada[0]] + self.m[entrada[1]] - self.m[v]
+                if self.m[entrada[0]] == '-':
+                    self.m[entrada[0]] = (self.h[v]*self.m[v] - self.h[entrada[1]]*self.m[entrada[1]] + self.h[l]*(self.m[entrada[1]]-self.m[v]))/(self.h[entrada[0]]-self.h[l])
+                    self.m[l] = self.m[entrada[0]] + self.m[entrada[1]] - self.m[v]
+                if self.m[entrada[1]] == '-':
+                    self.m[entrada[1]] = (self.h[v]*self.m[v] - self.h[entrada[0]]*self.m[entrada[0]] + self.h[l]*(self.m[entrada[0]]-self.m[v]))/(self.h[entrada[1]]-self.h[l])
+                    self.m[l] = self.m[entrada[0]] + self.m[entrada[1]] - self.m[v]
             if self.m[v] == '-':
-                if self.m[args[0]] == '-':
-                    self.m[args[0]] = (self.h[l]*self.m[l] - self.h[args[1]]*self.m[args[1]] + self.h[v]*(self.m[args[1]]-self.m[l]))/(self.h[args[0]]-self.h[v])
-                    self.m[v] = self.m[args[0]] + self.m[args[1]] - self.m[l]
-                if self.m[args[1]] == '-':
-                    self.m[args[1]] = (self.h[l]*self.m[l] - self.h[args[0]]*self.m[args[0]] + self.h[v]*(self.m[args[0]]-self.m[l]))/(self.h[args[1]]-self.h[v])
-                    self.m[v] = self.m[args[0]] + self.m[args[1]] - self.m[l]
+                if self.m[entrada[0]] == '-':
+                    self.m[entrada[0]] = (self.h[l]*self.m[l] - self.h[entrada[1]]*self.m[entrada[1]] + self.h[v]*(self.m[entrada[1]]-self.m[l]))/(self.h[entrada[0]]-self.h[v])
+                    self.m[v] = self.m[entrada[0]] + self.m[entrada[1]] - self.m[l]
+                if self.m[entrada[1]] == '-':
+                    self.m[entrada[1]] = (self.h[l]*self.m[l] - self.h[entrada[0]]*self.m[entrada[0]] + self.h[v]*(self.m[entrada[0]]-self.m[l]))/(self.h[entrada[1]]-self.h[v])
+                    self.m[v] = self.m[entrada[0]] + self.m[entrada[1]] - self.m[l]
 
     def SetMass(self,i,m):
         self.m[i] = m
@@ -604,7 +448,13 @@ class Ciclo:
 
     def Exibir(self,*kargs):
         # argumentos: h, p, s, T, x 
-        for j in kargs:
+        pontos = ['Pontos analisados - ']
+        for i in range(1,len(self.h)):
+
+                pontos.append(f' {i} -')
+        print(pontos)
+        for j in kargs:          
+               
             if j == 'h':
                 hp=['Entalpia (kJ/kg):']
                 for i in range(1,len(self.h)):
@@ -783,91 +633,7 @@ class Ciclo:
 
         
     # Condensador de refrigeração com eficiencia
-    def CondRefEfetividade(self, i, Tamb, DELTA_Tl, Tsr, efetividade, VasaoAR, j = 0):
-        '''
-        FUNCAO: define o ponto de saida do condensador e calcula a vasao massica no sistema
-
-        PARAMETROS:
-            Tamb - temperatura do reservatorio quente [KELVIN]
-            DELTA_Tl - diferenca entre as temperaturas de entrada do condensador
-            VasaoAR - vasao massica de ar externo no condensador [kg/s]
-        '''
-        Tcond = Tamb + DELTA_Tl
-        self.n[i] = efetividade
-        self.Texterna[i] = Tamb
-        self.VarExterno[i] = VasaoAR
-
-        if Tsr != 0: # caso haja subresfriamento
-            self.T[i] = Prop("T", "P", self.p[j]*1e3, "Q", 0, self.fluid)/1e3 - Tsr
-            self.p[i] = self.p[j]
-            self.h[i] = Prop("H", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
-            self.s[i] = Prop("S", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
-
-        else: # caso nao haja subresfriamento
-            self.T[i] = Prop("T", "P", self.p[j]*1e3, "Q", 0, self.fluid)/1e3 
-            self.p[i] = self.p[j]
-            self.h[i] = Prop("H", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
-            self.s[i] = Prop("S", "Q", 0, "P", self.p[i]*1e3, self.fluid)/1e3
-        if j == 0:
-            if i==1:
-                j=i-2
-            else:
-                j=i-1
-        if self.h[j] != '-':
-            massa = (VasaoAR * Cp_ar * DELTA_Tl * efetividade)/(self.h[j]-self.h[i])
-            self.SetMass(3, massa) # Define a vasao massica no ponto 3
-            self.Tub(3,1,2,4) # Configura os pontos como tubulacao, logo terao a mesma vasao
-        
-        
-    def calculoCondensadorEfetividade(self, i, j=0):
-        '''
-        FUNCAO: deve ser usada quando a funcao CondRefEfetividade for utilisada e nao houver os
-                parametros de entrada do evaporador. calcula o fluxo massico na saida do condensador
-                e define essa vasao para os demais pontos
-        '''
-        if j == 0:
-            if i == 1:
-                j = i - 2
-            else:
-                j = i - 1
-        
-        try:
-            massa = (self.VarExterno[i] * Cp_ar * (self.Texterna[i]-self.T[i]) * self.n[i])/(self.h[i]-self.h[j])
-            self.SetMass(3, massa)
-            self.Tub(3,1,2,4)
-        except:
-            print("Nao ha parametros suficientes")
-            
-    def evapRefEfetividade(self, i, efetividade, Tref, Tsa, vasaoAR, capacidadeFrigorifica):
-        '''
-        FUNCAO: calcula a temperatura do ponto 1, e consequentemente todas as propriedades, ja que
-                eh considerado que esta em vapor saturado
-        
-        PARAMETROS:
-            Tref - temperatura do ambiente refrigerado [KELVIN]
-            vasaoAR - vasao de ar refrigerado no evaporador [kg/s]
-
-        Retorna a temperatura de condensacao
-        '''
-        # acha temperatura de condensacao (idealizacao: nao considera o superaquecimento)
-        DELTA_T = capacidadeFrigorifica/(efetividade * vasaoAR * Cp_ar)
-        
-        if Tsa != 0: # caso haja superaquecimento adiciona na temperatura de saida
-            T_Evaporacao = Tref - DELTA_T
-            P_Evaporacao = Prop("P", "T", T_Evaporacao, "Q", 0, self.fluid)/1e3 
-            self.T[i] = T_Evaporacao + Tsa
-            self.p[i] = P_Evaporacao
-            self.h[i] = Prop("H", "T", self.T[i], "P", self.p[i]*1e3, self.fluid)/1e3
-            self.s[i] = Prop("S", "T", self.T[i], "P", self.p[i]*1e3, self.fluid)/1e3
-
-        else: # caso nao haja superaquecimento no evaporador
-            self.T[i] = Tref - DELTA_T
-            self.x[i] = 1
-            self.p[i] = Prop('P', 'T', self.T[i], 'Q', self.x[i], self.fluid)/1e3
-            self.h[i] = Prop('H', 'T', self.T[i], 'Q', self.x[i], self.fluid)/1e3
-            self.s[i] = Prop('S', 'T', self.T[i], 'Q', self.x[i], self.fluid)/1e3
-        return Tref - DELTA_T
-            
+   
     def calculoEvapRefrigeracaoEfetividade(self, i, j = 0):
         '''
         FUNCAO: calcula a capacidade frigorifica do sistema por kg de refrigerante. 
@@ -883,27 +649,7 @@ class Ciclo:
         self.q[i] = (self.h[i]- self.h[j])
         return self.q[i] * self.m[i]
 
-    def saidaCompressor(self, i, trabalhoC, eficiencia_is, p=0, j=0):
-        if j == 0:
-            if i == 1:
-                j = i-2
-            else:
-                j = i-1
-        if p == 0:
-            p = self.p[3]
-
-        # ponto 2 ideal
-        s2i = self.s[j]
-        h2i = Prop("H", "P", p*1e3, "S", s2i*1e3, self.fluid)/1e3
-
-        # ponto 2 real
-        self.h[2] = (self.h[1] + (h2i - self.h[1]) / eficiencia_is)
-        self.T[2] = Prop("T", "H", self.h[2]*1e3, "P", p*1e3, self.fluid)
-        self.p[2] = p
-        try:
-            self.s[2] = Prop("S", "T", self.T[2], "P", self.p[2]*1e3, self.fluid)/1e3
-        except:
-            self.s[2] = Prop("S", "H", self.h[2]*1e3, "P", self.p[2]*1e3, self.fluid)/1e3
+    
     def ResultadosWc(self):
         trabalhoCompressor = int((self.h[2] - self.h[1]))
         return trabalhoCompressor 

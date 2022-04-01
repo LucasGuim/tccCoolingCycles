@@ -2,10 +2,36 @@ import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 from CoolProp.Plots import PropertyPlot
 from CoolProp.Plots import SimpleCompressionCycle
-from Equipamentos_MkII import *
+from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
 
+def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante,t_superA='sat'):
+    '''
+        Descricao:
+        Parametros:
+            fluido: Fluido refrigerante
+            eficiencia_is: Eficiencia isentropica do compressor
+            t_cond: Temperatura do refrigerante no condenssador [K]
+            t_evap: Temperatura do refrigerante no evaporador [K]
+            vazao_refrigerante: fluxo do refrigerante 
+            t_superA: Temperatura de superaquecimento K 
 
+    '''
+   
+    ciclo = Ciclo(4,fluido)
+    ciclo.Evapout(1,'sat',t_superA,t_evap)
+    P_alta = (Prop('P','T',t_cond,'Q',0,fluido))/1e3
+    ciclo.Compress(2,P_alta,1,1)
+    ciclo.Condout(3,2,P_alta,'sat')
+    P_baixa = ciclo.p[1]/1e3
+    ciclo.VE(4,ciclo.p[1],3)
+    m = vazao_refrigerante
+    ciclo.SetMass(1,m)
+    ciclo.Tub(1,2,3,4)
+    Cop = ciclo.ResultadosCop()
+    print('COP',Cop)
+    ciclo.Exibir('h','p','s')
+    print(ciclo.T[1])
 
 def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,t_superA='sat'):
     #Ciclo High Pressure
@@ -49,6 +75,43 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     cicloLow.Exibir('h','p','s','T','x')
     print(f'COP do ciclo é: {COP}',f'WTh:{TrabaloCompressorHigh} e WTl: {TrabalhoNoCompressorLow} , vazão Ciclo de baixa: {vazao_refrigeranteLow} ' )
     
+def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF):
 
-CicloCascata3Pressoes('R22','R22',THcond=313,THevap=273,TLcond=273,TLeva=233,CapacidadeFrigorifica=100)
+    ciclo = Ciclo(9,fluido)
+    #Definindo pontos 1 e 2 
+    ciclo.Evapout(1,Pe,'sat')
+    ciclo.Compress(2,Pint,1,1)
+    # Defindo saida do condensador
+    ciclo.Condout(5,4,Pc,'sat')
+    #Primeira valvula de expansão 
+    ciclo.VE(6,Pint,5)
+    #Camera Flash 
+    ciclo.Tflash(7,9,6,P=Pint)
+    ciclo.VE(8,Pe,7)
+    #Camera de Mistura
+    ciclo.CameraMistura(3,2,9)
+    #Segundo compressor
+    ciclo.Compress(4,Pc,1,1)
+    #Taxa de calor absorvido no compressor por kg de refrigerante
+    qh = ciclo.h[1] - ciclo.h[8]
+    #Descobrindo as vazões de refrigerante
+
+    VazaoEvap = round(CF/qh,3)
+    VazaoCond = round(VazaoEvap/(1-ciclo.x[6]),3)
+    #Trabalho dos compressores
+
+    WbCompressorBaixa = VazaoEvap*(ciclo.h[2]-ciclo.h[1])
+    WbCompressorAlta = VazaoCond*(ciclo.h[4]-ciclo.h[3])
+    WbTotal = WbCompressorAlta + WbCompressorBaixa
+    #Calculo do COP
+    COP = round(CF/WbTotal,3)
+    print(VazaoCond,VazaoEvap,WbCompressorAlta,WbCompressorBaixa,COP,sep=' , ')
+    ciclo.Exibir('h','p','s','T','x')
+    
+#CicloDuplaCompressaoComFlash('R134a',1100,107.2,400,52.76)
+
+
+
+
+
 

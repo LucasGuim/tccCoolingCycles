@@ -1,5 +1,5 @@
 
-from Equipamentos_MkII import *
+from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
 from openpyxl import Workbook
 from openpyxl.chart import (
