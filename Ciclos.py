@@ -5,7 +5,7 @@ from CoolProp.Plots import SimpleCompressionCycle
 from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
 
-def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante,t_superA='sat'):
+def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante,t_superA='sat',Nis=1.0):
     '''
         Descricao:
         Parametros:
@@ -21,7 +21,7 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     ciclo = Ciclo(4,fluido)
     ciclo.Evapout(1,'sat',t_superA,t_evap)
     P_alta = (Prop('P','T',t_cond,'Q',0,fluido))/1e3
-    ciclo.Compress(2,P_alta,1,1)
+    ciclo.Compress(2,P_alta,1,Nis=Nis)
     ciclo.Condout(3,2,P_alta,'sat')
     P_baixa = ciclo.p[1]/1e3
     ciclo.VE(4,ciclo.p[1],3)
@@ -33,12 +33,12 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     ciclo.Exibir('h','p','s')
     print(ciclo.T[1])
 
-def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,t_superA='sat'):
+def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,t_superA='sat',Nis=1.0):
     #Ciclo High Pressure
     cicloHigh = Ciclo(4,fluidoSup)
     cicloHigh.Evapout(1,Pl='sat',Tsa=0,T=THevap)
     PHcond = Prop('P','T',THcond,'Q',0,fluidoSup)/1e3
-    cicloHigh.Compress(2,PHcond,1,1)
+    cicloHigh.Compress(2,PHcond,1,Nis=Nis)
     cicloHigh.Condout(3,2,PHcond,'sat')
     cicloHigh.VE(4,cicloHigh.p[1],3)
     
@@ -47,7 +47,7 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     cicloLow = Ciclo(4,fluidoInf)
     cicloLow.Evapout(1,Pl='sat',Tsa=10,T=TLeva)
     PLcond = Prop('P','T',TLcond,'Q',0,fluidoInf)/1e3
-    cicloLow.Compress(2,PLcond,1,1)
+    cicloLow.Compress(2,PLcond,1,Nis=Nis)
     cicloLow.Condout(3,2,PLcond,'sat')
     cicloLow.VE(4,cicloLow.p[1],3)
 
@@ -75,12 +75,12 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     cicloLow.Exibir('h','p','s','T','x')
     print(f'COP do ciclo é: {COP}',f'WTh:{TrabaloCompressorHigh} e WTl: {TrabalhoNoCompressorLow} , vazão Ciclo de baixa: {vazao_refrigeranteLow} ' )
     
-def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF):
+def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF,Nis=1.0):
 
     ciclo = Ciclo(9,fluido)
     #Definindo pontos 1 e 2 
     ciclo.Evapout(1,Pe,'sat')
-    ciclo.Compress(2,Pint,1,1)
+    ciclo.Compress(2,Pint,1,Nis=Nis)
     # Defindo saida do condensador
     ciclo.Condout(5,4,Pc,'sat')
     #Primeira valvula de expansão 
@@ -91,7 +91,7 @@ def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF):
     #Camera de Mistura
     ciclo.CameraMistura(3,2,9)
     #Segundo compressor
-    ciclo.Compress(4,Pc,1,1)
+    ciclo.Compress(4,Pc,1,Nis=Nis)
     #Taxa de calor absorvido no compressor por kg de refrigerante
     qh = ciclo.h[1] - ciclo.h[8]
     #Descobrindo as vazões de refrigerante

@@ -264,10 +264,9 @@ class Ciclo:
                 self.q[i] = self.h[i]-self.h[i-1]
             
     # Compressor
-    def Compress(self,i,P,j=0,Nis=1):
-        # P em Kpa
+    def Compress(self,i,P,j=0,Nis=1.0):
         # Nis eficiencia isentropica
-        
+            
             self.p[i] = P
             if self.h[i] == '-':  # usa a eficiencia isentropica
                 
@@ -282,6 +281,8 @@ class Ciclo:
                         self.T[i] = Prop('T','H',self.h[i]*1e3,'P',self.p[i]*1e3,self.fluid)
                     else:
                         self.s[i] = self.s[i-1]
+                        self.h[i] = Prop('H','S',self.s[i]*1e3,'P',self.p[i]*1e3,self.fluid)/1e3
+                        print (self.h[i])
                         wci = self.h[i] - self.h[i-1]
                         self.wc[i] = wci/Nis
                         self.h[i] = self.h[i-1] + self.wc[i]
@@ -448,11 +449,7 @@ class Ciclo:
 
     def Exibir(self,*kargs):
         # argumentos: h, p, s, T, x 
-        pontos = ['Pontos analisados - ']
-        for i in range(1,len(self.h)):
-
-                pontos.append(f' {i} -')
-        print(pontos)
+        
         for j in kargs:          
                
             if j == 'h':
