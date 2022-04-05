@@ -7,7 +7,8 @@ def janela_CicloSimples():
             [sg.Combo(values=('R134a','Water','R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a'),key='Combo')],           
             [sg.Text('Temperatura do refrigerante no condensador em °C:'),sg.Input(key='Tc',size=(5,5))],
             [sg.Text('Temperatura do refrigerante no evaporador em °C:'),sg.Input(key='Te',size=(5,5))],
-            [sg.Text('Temperatura de superaquecimento'),sg.Input(key='Tsa',size=(5,5))],
+            [sg.Text('Temperatura de superaquecimento'),sg.Input(key='Tsa',size=(5,5),default_text='0')],
+            [sg.Text('Temperatura de subresfriamento'),sg.Input(key='Tsub',size=(5,5),default_text='0')],
             [sg.Text('Eficiência isentropica do compressor'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='Nis')],
             [sg.Button('Voltar'),sg.Button('Executar')],
             [sg.Output(size=(40,15))]           
@@ -19,11 +20,14 @@ def janela_CicloCascataSimples():
             [sg.Text('Capacidade Frigorífica em KW'),sg.Input(key='CF',size=(5,5))],
             [sg.Text('Fluido refrigerante ciclo de pressão alta'),sg.Combo(values=('R134a','Water','R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a','R22'),key='RefriHP')],
             [sg.Text('Fluido refrigerante ciclo de pressão baixa'),sg.Combo(values=('R134a','Water','R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a','R22'),key='RefriPL')],
-            [sg.Text('Eficiência isentropica do compressor'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='Nis')],            
+            [sg.Text('Eficiência isentropica do compressor de alta pressão'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='NisHP')],
+            [sg.Text('Eficiência isentropica do compressor de baixa pressão'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='NisLP')],                
             [sg.Text('Temperatura do refrigerante no condensador de alta pressão em °C:'),sg.Input(key='TcHP',size=(5,5))],
             [sg.Text('Temperatura do refrigerante no evaporador de alta pressão em °C:'),sg.Input(key='TeHP',size=(5,5))],
+            [sg.Text('Temperatura de superaquecimento no ciclo pressão alta'),sg.Input(key='TsaHP',size=(5,5),default_text='0')],
             [sg.Text('Temperatura do refrigerante no condensador de baixa pressão em °C:'),sg.Input(key='TcLP',size=(5,5))],
             [sg.Text('Temperatura do refrigerante no evaporador de baixa pressão em °C:'),sg.Input(key='TeLP',size=(5,5))],
+            [sg.Text('Temperatura de superaquecimento no ciclo pressão baixa'),sg.Input(key='TsaLP',size=(5,5),default_text='0')],
             [sg.Button('Voltar'),sg.Button('Calcular')],
             [sg.Output(size=(50,30))]  
             ]

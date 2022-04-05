@@ -34,15 +34,15 @@ class Ciclo:
         
        
     # Evaporador
-    def Evapout(self,i,Pl='sat',Tsa ='sat', T = 0):
-        # Pl pressao low kPa | Tsa temperatura se super aquecimento
+    def Evapout(self,i,Pl='sat',Tsa = 0, T = 0):
+        # Pl pressao low | Tsa temperatura se super aquecimento
         if Pl == 'sat':
             self.p[i] = Prop('P','T',T,'Q',1,self.fluid)/1e3 # não temos o T passado no Prop, eh necessario pedir na funcao
             Pl = self.p[i]
             self.h[i] = Prop('H','P',Pl*1e3,'Q',1,self.fluid)/1e3
             self.s[i] = Prop('S','P',Pl*1e3,'Q',1,self.fluid)/1e3
         else:        
-            if Tsa == 'sat':
+            if Tsa == 0:
                 self.T[i] = Prop('T','P',Pl*1e3,'Q',1,self.fluid)
                 self.h[i] = Prop('H','P',Pl*1e3,'Q',1,self.fluid)/1e3
                 self.s[i] = Prop('S','P',Pl*1e3,'Q',1,self.fluid)/1e3
@@ -240,7 +240,7 @@ class Ciclo:
     
 
     # Condensador refrigeracao
-    def CondRef(self,i,Ph,Tsr='sat', eficiencia = 1, Tamb=0, VasaoTamb=0):
+    def CondRef(self,i,Ph,Tsr='sat'):
     
         # Ph pressao high | Tsr temperatura de sub resfriamento
         self.p[i] = Ph
@@ -260,8 +260,7 @@ class Ciclo:
                 self.q[i] = self.h[i] - self.h[i-2]
         else:
             self.p[i-1] = Ph
-            if self.h[i-1] != '-':
-                self.q[i] = self.h[i]-self.h[i-1]
+            
             
     # Compressor
     def Compress(self,i,P,j=0,Nis=1.0):

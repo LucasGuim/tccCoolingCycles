@@ -58,9 +58,11 @@ while True:
         TemperaturaEvaporador = float(values['Te']) + 273
         TemperaturaCondensador = float(values['Tc']) + 273
         Tsa = float(values['Tsa'])
+        Tsub = float(values['Tsub'])
         Nis = values['Nis']
         Fluido = values['Combo']
-        CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,vazao_refrigerante=1,Nis=Nis) 
+        
+        CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,vazao_refrigerante=1,Nis=Nis,t_sub=Tsub) 
     #Tela Ciclo com Flash          
     if window == janela2 and event == 'Calcular ':
         Nis = values['Nis']
@@ -74,13 +76,16 @@ while True:
     if window == janela2 and event == 'Calcular':
         RefrigerantePH = values['RefriHP']
         RefrigerantePL = values['RefriPL']
-        Nis = values['Nis']
+        NisHP = values['NisHP']
+        NisLP = values['NisLP']
         TemperaturaCondPH= float(values['TcHP']) + 273 
         TemperaturaEvaPH= float(values['TeHP']) + 273
+        TemperaturaSaPH= float(values['TsaHP'])
         TemperaturaCondPL= float(values['TcLP']) + 273
         TemperaturaEvaPL= float(values['TeLP']) + 273
+        TemperaturaSaPL= float(values['TsaLP'])
         CF = float(values['CF'])       
-        CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,Nis=Nis)
+        CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
         
    
    
