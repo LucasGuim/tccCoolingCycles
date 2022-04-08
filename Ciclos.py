@@ -28,9 +28,9 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     m = vazao_refrigerante
     ciclo.SetMass(1,m)
     ciclo.Tub(1,2,3,4)
-    Cop = round(ciclo.ResultadosCop(),2)
-    print('COP',Cop)
-    ciclo.Exibir('h','p','s','T')
+    ciclo.COP = round(ciclo.ResultadosCop(),2)
+    print('COP',ciclo.COP)
+    ciclo.CriaTabelas2()
     
 def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,TsaHP='sat',TsaLP='sat',NisHP=1.0,NisLP=1.0):
     #Ciclo High Pressure
@@ -72,6 +72,7 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     WbTotal= TrabaloCompressorHigh + TrabalhoNoCompressorLow
     
     COP = round(CapacidadeFrigorifica/WbTotal,2)
+    cicloLow.COP,cicloHigh.COP=COP
 
     cicloLow.Exibir('h','p','s','T','x')
     print(f'COP do ciclo é: {COP}',f'WTh:{TrabaloCompressorHigh} e WTl: {TrabalhoNoCompressorLow} , vazão Ciclo de baixa: {vazao_refrigeranteLow} ' )
@@ -106,6 +107,8 @@ def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF,Nis=1.0):
     WbTotal = WbCompressorAlta + WbCompressorBaixa
     #Calculo do COP
     COP = round(CF/WbTotal,3)
+    ciclo.COP = COP
+    ciclo.CriaTabelas2()
     print(VazaoCond,VazaoEvap,WbCompressorAlta,WbCompressorBaixa,COP,sep=' , ')
     ciclo.Exibir('h','p','s','T','x')
     

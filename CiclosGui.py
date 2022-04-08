@@ -55,14 +55,16 @@ while True:
         break
     #Tela Ciclo Simples
     if window == janela2 and event == 'Executar':
-        TemperaturaEvaporador = float(values['Te']) + 273
-        TemperaturaCondensador = float(values['Tc']) + 273
+        TemperaturaEvaporador = float(values['Te']) + 273.15
+        TemperaturaCondensador = float(values['Tc']) + 273.15
         Tsa = float(values['Tsa'])
-        Tsub = float(values['Tsub'])
+        Tsub = 'sat' #float(values['Tsub'])
         Nis = values['Nis']
         Fluido = values['Combo']
-        
-        CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,vazao_refrigerante=1,Nis=Nis,t_sub=Tsub) 
+        try:
+            CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,vazao_refrigerante=1,Nis=Nis,t_sub=Tsub)
+        except ValueError:
+            print('Valores de input inadequados') 
     #Tela Ciclo com Flash          
     if window == janela2 and event == 'Calcular ':
         Nis = values['Nis']
@@ -71,21 +73,27 @@ while True:
         PressaoEvaporador = float(values['Pe'])
         PressaoCondensador = float(values['Pc'])
         PressaoInt = float(values['Pint'])
-        CicloDuplaCompressaoComFlash(fluido=Fluido, Pc=PressaoCondensador,Pe=PressaoEvaporador,Pint=PressaoInt,CF=CF,Nis=Nis)
+        try:
+            CicloDuplaCompressaoComFlash(fluido=Fluido, Pc=PressaoCondensador,Pe=PressaoEvaporador,Pint=PressaoInt,CF=CF,Nis=Nis)
+        except ValueError:
+            print('Valores de input inadequados') 
     #Tela Ciclo Cascata
     if window == janela2 and event == 'Calcular':
         RefrigerantePH = values['RefriHP']
         RefrigerantePL = values['RefriPL']
         NisHP = values['NisHP']
         NisLP = values['NisLP']
-        TemperaturaCondPH= float(values['TcHP']) + 273 
-        TemperaturaEvaPH= float(values['TeHP']) + 273
+        TemperaturaCondPH= float(values['TcHP']) + 273.15 
+        TemperaturaEvaPH= float(values['TeHP']) + 273.15
         TemperaturaSaPH= float(values['TsaHP'])
-        TemperaturaCondPL= float(values['TcLP']) + 273
-        TemperaturaEvaPL= float(values['TeLP']) + 273
+        TemperaturaCondPL= float(values['TcLP']) + 273.15
+        TemperaturaEvaPL= float(values['TeLP']) + 273.15
         TemperaturaSaPL= float(values['TsaLP'])
-        CF = float(values['CF'])       
-        CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
+        CF = float(values['CF'])
+        try:
+            CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
+        except ValueError:
+            print('Valores de input inadequados') 
         
    
    

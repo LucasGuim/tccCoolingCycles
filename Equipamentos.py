@@ -1,5 +1,7 @@
-
-
+from turtle import width
+from openpyxl import Workbook
+import os
+import pandas as pd
 from CoolProp.CoolProp import PropsSI as Prop
 
 '''
@@ -17,11 +19,11 @@ Codigos para argumentos
     D densidade massica
 '''
 
-from sympy import symbols, Eq, solve
+from sympy import false, symbols, Eq, solve
 class Ciclo:
     def __init__(self,n,fluid): # n = numeros de pontos de controle (ou de equipamentos)
         self.fluid=fluid
-        self.n = n      # ? nao usado
+        self.COP = n     
         self.p=['Pressao (kPa):']+["-"]*n
         self.h=['Entalpia (kJ/kg):']+["-"]*n
         self.s=['Entropia (kJ/kgK):']+["-"]*n
@@ -645,7 +647,70 @@ class Ciclo:
         self.q[i] = (self.h[i]- self.h[j])
         return self.q[i] * self.m[i]
 
-    
+    def CriaTabelas(self):              
+               
+            
+        entalpias=[]
+        for i in range(1,len(self.h)):
+            if self.h[i] == '-':
+                entalpias.append('-')
+            else:
+                entalpias.append(round(self.h[i],2))
+                
+            
+        pressoes=[]
+        for i in range(1,len(self.p)):
+            if type(self.p[i]) == str:
+                pressoes.append(self.p[i])
+            else:
+                pressoes.append(round(self.p[i],2))
+                
+            
+        entropias = []
+        for i in range(1,len(self.s)):
+            if type(self.s[i]) == str:
+                entropias.append(self.s[i])
+            else:
+                entropias.append(round(self.s[i],3))
+                        
+            
+        temperaturas =[]
+        for i in range(1,len(self.T)):
+            if self.T[i] == '-':
+                temperaturas.append('-')
+            else:
+                temperaturas.append(round(self.T[i],2))
+                
+            
+        xp = []
+        for i in range(1,len(self.x)):
+            if self.x[i] == '-':
+                xp.append('-')
+        else:
+            xp.append(round(self.x[i],3))
+        data = {'Entalpia (kJ/kg):':entalpias,'Pressao (kPa):':pressoes,'Entropia (kJ/kgK)':entropias,'Temperatura (K):':temperaturas}
+        pd.set_option('min_colwidth', 120)
+        tabela = pd.DataFrame(data=data)
+        tabela.to_excel(f'Fluido-{self.fluid}-T0-{int(self.T[1])}-PMax-{int(self.p[len(self.p)-1])}.xlsx',index=False,)
+        
+        
+        
+    def CriaTabelas2(self):
+        wb = Workbook()
+        ws = wb.active
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 20
+        ws.column_dimensions['C'].width = 20
+        ws.column_dimensions['D'].width = 20
+        ws.append(['Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
+        for i in range(1,len(self.h)):
+            ws.append([self.p[i],self.h[i],self.s[i],self.T[i]])
+        ws['F1'] = 'COP'
+        ws['F2'] = self.COP
+        wb.save(f'{self.fluid}-T0-{int(self.T[1])}.xlsx')
+        
+        
+
     def ResultadosWc(self):
         trabalhoCompressor = int((self.h[2] - self.h[1]))
         return trabalhoCompressor 
