@@ -1,5 +1,17 @@
 import PySimpleGUI as sg
 
+
+
+def janela_Inicial():
+    
+    layout = [  [sg.Text('Olá, Lucas ')],
+                [sg.Text('Qual tipo de ciclo quer calcular ?')],
+                [sg.Radio('Ciclo Simples','Ciclo',key='CicloSimples'),sg.Radio('Ciclo Cascata','Ciclo',key='CicloCascataSimples'),sg.Radio('Ciclo com camera Flash','Ciclo',key='CicloCameraFlash')],
+                [sg.Image(r'img1.png'),sg.Image(r'img2.png'),sg.Image(r'img1.png')],
+                [sg.Button('Continuar')]
+            ]
+    return sg.Window('Escolha do ciclo',layout=layout,finalize=True)
+
 def janela_CicloSimples():
     sg.theme('Reddit')
     layout = [
@@ -11,7 +23,7 @@ def janela_CicloSimples():
             [sg.Text('Temperatura de subresfriamento'),sg.Input(key='Tsub',size=(5,5),default_text='0')],
             [sg.Text('Eficiência isentropica do compressor'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='Nis')],
             [sg.Button('Voltar'),sg.Button('Executar')],
-            #[sg.Output(size=(50,5))]           
+            [sg.Output(size=(50,5))]           
             ]
     return sg.Window('Ciclo de compreesão simples',layout=layout,finalize=True)
 def janela_CicloCascataSimples():

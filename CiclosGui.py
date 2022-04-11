@@ -15,14 +15,7 @@ import os
 from Ciclos import CicloCompressaoDeVaporComTemperaturas, CicloDuplaCompressaoComFlash,CicloCascata3Pressoes
 from telas import *
 
-def janela_Inicial():
-    
-    layout = [  [sg.Text('Olá, Lucas ')],
-                [sg.Text('Qual tipo de ciclo quer calcular ?')],
-                [sg.Radio('Ciclo Simples','Ciclo',key='CicloSimples'),sg.Radio('Ciclo Cascata','Ciclo',key='CicloCascataSimples'),sg.Radio('Ciclo com camera Flash','Ciclo',key='CicloCameraFlash')],
-                [sg.Button('Continuar')]
-            ]
-    return sg.Window('Escolha do ciclo',layout=layout,finalize=True)
+
 
 
 
@@ -58,7 +51,7 @@ while True:
         TemperaturaEvaporador = float(values['Te']) + 273.15
         TemperaturaCondensador = float(values['Tc']) + 273.15
         Tsa = float(values['Tsa'])
-        Tsub = 'sat' #float(values['Tsub'])
+        Tsub = float(values['Tsub'])
         Nis = values['Nis']
         Fluido = values['Combo']
         try:

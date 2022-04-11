@@ -694,14 +694,20 @@ class Ciclo:
         tabela.to_excel(f'Fluido-{self.fluid}-T0-{int(self.T[1])}-PMax-{int(self.p[len(self.p)-1])}.xlsx',index=False,)
         
         
+    def subResfri(self,i,Tsub):
+    #i ponto de subResfri e j ponto da saida de condensador
+        Temp = self.T[i]
+        self.T[i] = Temp - Tsub
+        self.h[i] = Prop('H','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3
         
+
     def CriaTabelas2(self):
         wb = Workbook()
         ws = wb.active
-        ws.column_dimensions['A'].width = 20
-        ws.column_dimensions['B'].width = 20
-        ws.column_dimensions['C'].width = 20
-        ws.column_dimensions['D'].width = 20
+        colunas = ['A','B','C','D']
+        for c in colunas:
+            ws.column_dimensions[c]=20
+        
         ws.append(['Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
         for i in range(1,len(self.h)):
             ws.append([self.p[i],self.h[i],self.s[i],self.T[i]])

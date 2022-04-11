@@ -23,7 +23,8 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     ciclo.Evapout(1,Pl=P_baixa,Tsa=t_superA,T=t_evap)
     P_alta = (Prop('P','T',t_cond,'Q',0,fluido))/1e3
     ciclo.Compress(2,P_alta,1,Nis=Nis)
-    ciclo.CondRef(3,P_alta,t_sub)
+    ciclo.CondRef(3,P_alta,'sat')
+    ciclo.subResfri(3,t_sub)
     ciclo.VE(4,ciclo.p[1],3)
     m = vazao_refrigerante
     ciclo.SetMass(1,m)
@@ -32,7 +33,7 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     print('COP',ciclo.COP)
     ciclo.CriaTabelas2()
     
-def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,TsaHP='sat',TsaLP='sat',NisHP=1.0,NisLP=1.0):
+def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,TsaHP='sat',TsaLP='sat',NisHP=1.0,NisLP=1.0,Tsub=0):
     #Ciclo High Pressure
     cicloHigh = Ciclo(4,fluidoSup)
     PHevap = (Prop('P','T',THevap,'Q',1,fluidoSup))/1e3
@@ -40,6 +41,7 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     PHcond = Prop('P','T',THcond,'Q',0,fluidoSup)/1e3
     cicloHigh.Compress(2,PHcond,1,Nis=NisHP)
     cicloHigh.Condout(3,2,PHcond,'sat')
+    cicloHigh.subResfri(3,Tsub)
     cicloHigh.VE(4,cicloHigh.p[1],3)
     
     CfCicloHigh = cicloHigh.ResultadosCf()
@@ -50,6 +52,7 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     PLcond = Prop('P','T',TLcond,'Q',0,fluidoInf)/1e3
     cicloLow.Compress(2,PLcond,1,Nis=NisLP)
     cicloLow.Condout(3,2,PLcond,'sat')
+    cicloLow.subResfri(3,Tsub)
     cicloLow.VE(4,cicloLow.p[1],3)
 
     #Descobrindo as vazões de refrigerante 
@@ -77,7 +80,7 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     cicloLow.Exibir('h','p','s','T','x')
     print(f'COP do ciclo é: {COP}',f'WTh:{TrabaloCompressorHigh} e WTl: {TrabalhoNoCompressorLow} , vazão Ciclo de baixa: {vazao_refrigeranteLow} ' )
     
-def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF,Nis=1.0):
+def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF,Nis=1.0,Tsub=0):
 
     ciclo = Ciclo(9,fluido)
     #Definindo pontos 1 e 2 
@@ -85,6 +88,7 @@ def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF,Nis=1.0):
     ciclo.Compress(2,Pint,1,Nis=Nis)
     # Defindo saida do condensador
     ciclo.Condout(5,4,Pc,'sat')
+    ciclo.subResfri(5,Tsub)
     #Primeira valvula de expansão 
     ciclo.VE(6,Pint,5)
     #Camera Flash 
