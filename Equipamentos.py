@@ -1,7 +1,6 @@
-from turtle import width
+
 from openpyxl import Workbook
-import os
-import pandas as pd
+
 from CoolProp.CoolProp import PropsSI as Prop
 
 '''
@@ -356,7 +355,7 @@ class Ciclo:
         self.p[i] = self.p[l]
         self.s[i] = Prop('S','P',self.p[i]*1e3,'H',self.h[i]*1e3,self.fluid)
         return 
-    def Tflash(self,l,v,*entrada,P=0):
+    def Tflash(self,l,v,entrada,P=0):
         #entrada são uma tupla de pontos de entrada
         #l e v são os pontos de saida liquido e vapor 
         # CASO O PARAMETRO P NAO SEJA PASSADO, HAVERA UMA VERIFICAÇÃO
@@ -394,7 +393,9 @@ class Ciclo:
             self.p[v] = P
         # CALCULANDO OS ESTADOS DE SAIDA SATURADOS
         self.h[l]=Prop('H','P',P*1e3,'Q',0,self.fluid)/1e3
+        self.x[l]=0
         self.h[v]=Prop('H','P',P*1e3,'Q',1,self.fluid)/1e3
+        self.x[l]=1
         self.s[l]=Prop('S','P',P*1e3,'Q',0,self.fluid)/1e3
         self.s[v]=Prop('S','P',P*1e3,'Q',1,self.fluid)/1e3
         
@@ -647,73 +648,40 @@ class Ciclo:
         self.q[i] = (self.h[i]- self.h[j])
         return self.q[i] * self.m[i]
 
-    def CriaTabelas(self):              
-               
-            
-        entalpias=[]
-        for i in range(1,len(self.h)):
-            if self.h[i] == '-':
-                entalpias.append('-')
-            else:
-                entalpias.append(round(self.h[i],2))
-                
-            
-        pressoes=[]
-        for i in range(1,len(self.p)):
-            if type(self.p[i]) == str:
-                pressoes.append(self.p[i])
-            else:
-                pressoes.append(round(self.p[i],2))
-                
-            
-        entropias = []
-        for i in range(1,len(self.s)):
-            if type(self.s[i]) == str:
-                entropias.append(self.s[i])
-            else:
-                entropias.append(round(self.s[i],3))
-                        
-            
-        temperaturas =[]
-        for i in range(1,len(self.T)):
-            if self.T[i] == '-':
-                temperaturas.append('-')
-            else:
-                temperaturas.append(round(self.T[i],2))
-                
-            
-        xp = []
-        for i in range(1,len(self.x)):
-            if self.x[i] == '-':
-                xp.append('-')
-        else:
-            xp.append(round(self.x[i],3))
-        data = {'Entalpia (kJ/kg):':entalpias,'Pressao (kPa):':pressoes,'Entropia (kJ/kgK)':entropias,'Temperatura (K):':temperaturas}
-        pd.set_option('min_colwidth', 120)
-        tabela = pd.DataFrame(data=data)
-        tabela.to_excel(f'Fluido-{self.fluid}-T0-{int(self.T[1])}-PMax-{int(self.p[len(self.p)-1])}.xlsx',index=False,)
+   
         
         
     def subResfri(self,i,Tsub):
     #i ponto de subResfri e j ponto da saida de condensador
-        Temp = self.T[i]
-        self.T[i] = Temp - Tsub
-        self.h[i] = Prop('H','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3
+        if Tsub == 0:
+            return None
+        else:
+            Temp = self.T[i]
+            self.T[i] = Temp - Tsub
+            self.h[i] = Prop('H','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3
         
-
-    def CriaTabelas2(self):
+    def CriaTabelaCascata(self,cicloLow):
         wb = Workbook()
-        ws = wb.active
-        colunas = ['A','B','C','D']
-        for c in colunas:
-            ws.column_dimensions[c]=20
-        
-        ws.append(['Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
+        ws = wb.active     
+        ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
         for i in range(1,len(self.h)):
-            ws.append([self.p[i],self.h[i],self.s[i],self.T[i]])
+            ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2)])
+        for i in range(1,len(cicloLow.h)):
+            ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2)])
+        
         ws['F1'] = 'COP'
         ws['F2'] = self.COP
-        wb.save(f'{self.fluid}-T0-{int(self.T[1])}.xlsx')
+        wb.save(f'Ciclo Cascata - high pressure {self.fluid} - low pressure {cicloLow.fluid} -T0-{int(self.T[1])}.xlsx')
+    def CriaTabelas2(self,nome):
+        wb = Workbook()
+        ws = wb.active     
+        ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
+        for i in range(1,len(self.h)):
+            ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2)])
+        ws['F1'] = 'COP'
+        ws['F2'] = self.COP
+        
+        wb.save(f'Ciclo {nome} - {self.fluid}-T0-{int(self.T[1])}-COP-{self.COP}.xlsx')
         
         
 

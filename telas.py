@@ -3,14 +3,18 @@ import PySimpleGUI as sg
 
 
 def janela_Inicial():
+    sg.theme('Dark Grey 13')
+    Ciclo1 =  [[sg.Radio('Ciclo Simples','Ciclo',key='CicloSimples')],[sg.Image(r'img1.png',size=(420,400))]]
+    Ciclo2 = [[sg.Radio('Ciclo Cascata','Ciclo',key='CicloCascataSimples')],[sg.Image(r'img2.png',size=(420,400))]]
+    Ciclo3=[[sg.Radio('Ciclo com camera Flash, tipo - 2','Ciclo',key='CicloCameraFlash')],[sg.Image(r'img3.png',size=(420,400))]]
+    Ciclo4 = [[sg.Radio('Ciclo com camera Flash, tipo - 1','Ciclo',key='CicloCameraFlashCaso2')],[sg.Image(r'img4.png',size=(420,400))]]
     
     layout = [  [sg.Text('Olá, Lucas ')],
                 [sg.Text('Qual tipo de ciclo quer calcular ?')],
-                [sg.Radio('Ciclo Simples','Ciclo',key='CicloSimples'),sg.Radio('Ciclo Cascata','Ciclo',key='CicloCascataSimples'),sg.Radio('Ciclo com camera Flash','Ciclo',key='CicloCameraFlash')],
-                [sg.Image(r'img1.png'),sg.Image(r'img2.png'),sg.Image(r'img1.png')],
+                [sg.TabGroup([[sg.Tab('Ciclos',Ciclo1),sg.Tab('Ciclo 2',Ciclo2),sg.Tab('Ciclo 3',Ciclo3),sg.Tab('Ciclo 4',Ciclo4)]])],
                 [sg.Button('Continuar')]
             ]
-    return sg.Window('Escolha do ciclo',layout=layout,finalize=True)
+    return sg.Window('Escolha do ciclo',layout=layout,finalize=True,auto_close=True)
 
 def janela_CicloSimples():
     sg.theme('Reddit')
@@ -23,7 +27,7 @@ def janela_CicloSimples():
             [sg.Text('Temperatura de subresfriamento'),sg.Input(key='Tsub',size=(5,5),default_text='0')],
             [sg.Text('Eficiência isentropica do compressor'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='Nis')],
             [sg.Button('Voltar'),sg.Button('Executar')],
-            [sg.Output(size=(50,5))]           
+            [sg.Output(size=(55,25))]           
             ]
     return sg.Window('Ciclo de compreesão simples',layout=layout,finalize=True)
 def janela_CicloCascataSimples():
@@ -52,9 +56,23 @@ def janela_CicloCameraFlash():
             [sg.Text('Eficiência isentropica do compressor'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='Nis')],        
             [sg.Text('Pressão no condensador em kPa:'),sg.Input(key='Pc',size=(5,5))],
             [sg.Text('Pressão no evaporador  em kPa:'),sg.Input(key='Pe',size=(5,5))],
-            [sg.Text('Pressão Intermediaria'),sg.Input(key='Pint',size=(5,5))],
+            [sg.Text('Pressão Intermediaria em kPa:'),sg.Input(key='Pint',size=(5,5))],
             
             [sg.Button('Voltar'),sg.Button('Calcular ')],
+             [sg.Output(size=(40,15))]  
+            ]
+    return sg.Window('Ciclo com Camera Flash',layout=layout,finalize=True)
+
+def janela_CicloFlashCaso2():
+    sg.theme('Reddit')
+    layout = [
+            [sg.Text('Capacidade Frigorífica em KW'),sg.Input(key='CF',size=(5,5))],
+            [sg.Text('Fluido refrigerante'),sg.Combo(values=('R134a','Water','R717','R600a', 'R290','R1234yf', 'R1234ze(E)', 'R410a','R22'),key='Refri')],
+            [sg.Text('Eficiência isentropica do compressor'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='Nis')],        
+            [sg.Text('Temperatura do refrigerante no condensador em °C'),sg.Input(key='Tc',size=(5,5))],
+            [sg.Text('Temperatura do refrigerante no evaporador em °C'),sg.Input(key='Te',size=(5,5))],
+            [sg.Text('Pressão Intermediaria em kPa:'),sg.Input(key='Pint',size=(5,5))],            
+            [sg.Button('Voltar'),sg.Button('Calcular  ')],
             [sg.Output(size=(40,15))]  
             ]
     return sg.Window('Ciclo com Camera Flash',layout=layout,finalize=True)

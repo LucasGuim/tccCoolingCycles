@@ -1,23 +1,8 @@
 import PySimpleGUI as sg
-from numpy import size 
-import matplotlib.pyplot as plt
-from CoolProp.Plots import PropertyPlot
-from CoolProp.Plots import SimpleCompressionCycle
 from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
-from openpyxl import Workbook
-from openpyxl.chart import (
-    LineChart,
-    Reference, 
-    Series
-)
-import os
-from Ciclos import CicloCompressaoDeVaporComTemperaturas, CicloDuplaCompressaoComFlash,CicloCascata3Pressoes
+from Ciclos import CicloCompressaoDeVaporComTemperaturas, CicloDuplaCompressaoComFlash,CicloCascata3Pressoes,CicloComFlashCaso1
 from telas import *
-
-
-
-
 
 
 #Tela inicial 
@@ -41,6 +26,10 @@ while True:
         janela2 = janela_CicloCameraFlash()
         janela1.hide()
         janela2.bring_to_front()
+    if window == janela1 and event =='Continuar' and values['CicloCameraFlashCaso2'] == True:        
+        janela2 = janela_CicloFlashCaso2()
+        janela1.hide()
+        janela2.bring_to_front()
     if window == janela2 and event == 'Voltar':
         janela2.hide()
         janela1.un_hide()
@@ -55,9 +44,11 @@ while True:
         Nis = values['Nis']
         Fluido = values['Combo']
         try:
-            CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,vazao_refrigerante=1,Nis=Nis,t_sub=Tsub)
+            cicloSimples= CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,vazao_refrigerante=1,Nis=Nis,t_sub=Tsub)
+            cicloSimples.CriaTabelas2('Simples')
+            print(f' Tabela criada com sucesso! ')
         except ValueError:
-            print('Valores de input inadequados') 
+           print('Valores de input inadequados') 
     #Tela Ciclo com Flash          
     if window == janela2 and event == 'Calcular ':
         Nis = values['Nis']
@@ -87,7 +78,17 @@ while True:
             CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
         except ValueError:
             print('Valores de input inadequados') 
-        
+    if window == janela2 and event == 'Calcular  ':
+        Nis = values['Nis']
+        Fluido = values['Refri']
+        CF = float(values['CF'])
+        TemperaturaEvaporador = float(values['Te'])
+        TemperaturaCondensador = float(values['Tc'])
+        PressaoInt = float(values['Pint'])
+        try:
+            CicloComFlashCaso1(fluido=Fluido, Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Pint=PressaoInt,CF=CF,Nis=Nis)
+        except ValueError:
+            print('Valores de input inadequados') 
    
    
     
