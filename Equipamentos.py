@@ -674,7 +674,10 @@ class Ciclo:
         wb.save(f'Ciclo Cascata - high pressure {self.fluid} - low pressure {cicloLow.fluid} -T0-{int(self.T[1])}.xlsx')
     def CriaTabelas2(self,nome):
         wb = Workbook()
-        ws = wb.active     
+        ws = wb.active
+        colunas = ['A','B','C','D']
+        for c in colunas:
+            ws.column_dimensions[c].width=20 
         ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
         for i in range(1,len(self.h)):
             ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2)])

@@ -1,12 +1,13 @@
 import PySimpleGUI as sg
 from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
-from Ciclos import CicloCompressaoDeVaporComTemperaturas, CicloDuplaCompressaoComFlash,CicloCascata3Pressoes,CicloComFlashCaso1
+from Ciclos import *
 from telas import *
 
 
 #Tela inicial 
 janela1,janela2= janela_Inicial(),None
+refrigerantes=[]
 
 #Cria um loop de leitura de eventos nas telas 
 while True:
@@ -23,11 +24,11 @@ while True:
         janela1.hide()
         janela2.bring_to_front()
     if window == janela1 and event =='Continuar' and values['CicloCameraFlash'] == True:        
-        janela2 = janela_CicloCameraFlash()
+        janela2 = telaCicloFlashCaso1()
         janela1.hide()
         janela2.bring_to_front()
     if window == janela1 and event =='Continuar' and values['CicloCameraFlashCaso2'] == True:        
-        janela2 = janela_CicloFlashCaso2()
+        janela2 = telaCicloFlashCaso2()
         janela1.hide()
         janela2.bring_to_front()
     if window == janela2 and event == 'Voltar':
@@ -35,6 +36,11 @@ while True:
         janela1.un_hide()
     if window == janela2   and event == sg.WIN_CLOSED:
         break
+    if window == janela2   and event == 'Adicionar':
+        Fluido = values['Refri']
+        refrigerantes.append(Fluido)
+        print(refrigerantes)
+
     #Tela Ciclo Simples
     if window == janela2 and event == 'Executar':
         TemperaturaEvaporador = float(values['Te']) + 273.15
@@ -42,23 +48,25 @@ while True:
         Tsa = float(values['Tsa'])
         Tsub = float(values['Tsub'])
         Nis = values['Nis']
-        Fluido = values['Combo']
+        
         try:
-            cicloSimples= CicloCompressaoDeVaporComTemperaturas(fluido=Fluido,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,vazao_refrigerante=1,Nis=Nis,t_sub=Tsub)
-            cicloSimples.CriaTabelas2('Simples')
-            print(f' Tabela criada com sucesso! ')
+            cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
+            
+            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso')
         except ValueError:
            print('Valores de input inadequados') 
-    #Tela Ciclo com Flash          
+    #Tela Ciclo com Flash 1         
     if window == janela2 and event == 'Calcular ':
         Nis = values['Nis']
         Fluido = values['Refri']
         CF = float(values['CF'])
-        PressaoEvaporador = float(values['Pe'])
-        PressaoCondensador = float(values['Pc'])
+        TemperaturaEvaporador = float(values['Te'])
+        TemperaturaCondensador = float(values['Tc'])
+        Tsa = float(values['Tsa'])
+        Tsub = float(values['Tsub'])
         PressaoInt = float(values['Pint'])
         try:
-            CicloDuplaCompressaoComFlash(fluido=Fluido, Pc=PressaoCondensador,Pe=PressaoEvaporador,Pint=PressaoInt,CF=CF,Nis=Nis)
+            CicloDuplaCompressaoComFlash(fluido=Fluido,Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
         except ValueError:
             print('Valores de input inadequados') 
     #Tela Ciclo Cascata
@@ -78,15 +86,18 @@ while True:
             CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
         except ValueError:
             print('Valores de input inadequados') 
+    #Tela Ciclo com Flash 2
     if window == janela2 and event == 'Calcular  ':
         Nis = values['Nis']
         Fluido = values['Refri']
         CF = float(values['CF'])
         TemperaturaEvaporador = float(values['Te'])
         TemperaturaCondensador = float(values['Tc'])
+        Tsa = float(values['Tsa'])
+        Tsub = float(values['Tsub'])
         PressaoInt = float(values['Pint'])
         try:
-            CicloComFlashCaso1(fluido=Fluido, Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Pint=PressaoInt,CF=CF,Nis=Nis)
+            CicloComFlashCaso2(fluido=Fluido, Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
         except ValueError:
             print('Valores de input inadequados') 
    

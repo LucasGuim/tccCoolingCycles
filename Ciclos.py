@@ -6,7 +6,7 @@ from CoolProp.Plots import SimpleCompressionCycle
 from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
 
-def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante,t_superA='sat',Nis=1.0,t_sub='sat'):
+def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante=0,t_superA='sat',Nis=1.0,t_sub='sat'):
     '''
         Descricao:
         Parametros:
@@ -84,8 +84,14 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     cicloLow.Exibir('h','p','s','T')
     print(f'COP do ciclo é: {COP}. Tabela criada com sucesso.' )
     
-def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF,Nis=1.0,Tsub=0):
-
+def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0):
+    Tev = Te +273.15
+    Tcond = Tc + 273.15
+    #Calculando Pe 
+    Pe = Prop('P','T',Tev,'Q',1,fluido)/1e3
+    #Calculando Pc
+    Pc = Prop('P','T',Tcond,'Q',0,fluido)/1e3
+    #Criando Ciclo
     ciclo = Ciclo(9,fluido)
     #Definindo pontos 1 e 2 
     ciclo.Evapout(1,Pe,Tsa=0)
@@ -116,11 +122,11 @@ def CicloDuplaCompressaoComFlash(fluido,Pc,Pe,Pint,CF,Nis=1.0,Tsub=0):
     ciclo.COP = COP
     ciclo.CriaTabelas2("Flash Tipo-1")
     print(VazaoCond,VazaoEvap,WbCompressorAlta,WbCompressorBaixa,COP,sep=' , ')
-    
+    return ciclo
     
 #CicloDuplaCompressaoComFlash('R134a',1100,107.2,400,52.76)
 
-def CicloComFlashCaso1(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsuper=0):
+def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsuper=0):
     ciclo = Ciclo(8,fluid=fluido)
     Tev = Te +273.15
     Tcond = Tc + 273.15
@@ -153,19 +159,23 @@ def CicloComFlashCaso1(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsuper=0):
     COP = round(CF/Wtotal,2)
     ciclo.COP = COP
     ciclo.CriaTabelas2("Flash tipo-2")
+    return ciclo
     
     print(M1,M3,X6,Wcb,Wca,COP)
     
 #CicloComFlashCaso1(fluido='R717',Tc=24.9,Te=-20,Pint=500,CF=249.7,Tsuper=0,Tsub=0)
 
-def RefrigeranteMaisEficienteCicloSimples(refrigerantes,t_evap,t_cond, vazao_refrigerante,t_superA=0,Nis=1.0,t_sub=0):
+def RefrigeranteMaisEficienteCicloSimples(refrigerantes,t_evap,t_cond,Function=CicloCompressaoDeVaporComTemperaturas,t_superA=0,Nis=1.0,t_sub=0):
     copCicloHighest = 0
     for fluido in refrigerantes:
-        ciclo = CicloCompressaoDeVaporComTemperaturas(fluido=fluido,t_evap=t_evap,t_cond=t_cond,t_sub=t_sub,t_superA=t_superA,Nis=Nis,vazao_refrigerante=1)
+        ciclo = Function(fluido=fluido,t_evap=t_evap,t_cond=t_cond,t_sub=t_sub,t_superA=t_superA,Nis=Nis)
         if(ciclo.COP > copCicloHighest):
             copCicloHighest=ciclo.COP
             cicloHighest=ciclo
     print(cicloHighest.COP)
+    cicloHighest.CriaTabelas2('Simples')
+    return cicloHighest
+    #print(f'O refrigerante mais eficiente nessas codições é o {cicloHighest.fluid} e sua tabela foi criada com sucesso')
 
 
-RefrigeranteMaisEficienteCicloSimples(refrigerantes=['R134a','Water','R717','R600a','R290','R1234yf', 'R1234ze(E)', 'R410a'],t_evap=274,t_cond=313,vazao_refrigerante=1)
+#RefrigeranteMaisEficienteCicloSimples(refrigerantes=['R134a','Water','R717','R600a','R290','R1234yf', 'R1234ze(E)', 'R410a'],t_evap=274,t_cond=313)
