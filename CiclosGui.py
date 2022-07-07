@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
 from Ciclos import *
-from telas import *
+from Telas import *
 
 
 #Tela inicial 
@@ -31,6 +31,10 @@ while True:
         janela2 = telaCicloFlashCaso2()
         janela1.hide()
         janela2.bring_to_front()
+    if window == janela1 and event =='Continuar' and values['CicloSimplesTrocador'] == True:        
+        janela2 = janela_CicloSimplesComTrocador()
+        janela1.hide()
+        janela2.bring_to_front()
     if window == janela2 and event == 'Voltar':
         janela2.hide()
         janela1.un_hide()
@@ -48,17 +52,18 @@ while True:
         Tsa = float(values['Tsa'])
         Tsub = float(values['Tsub'])
         Nis = values['Nis']
-        
+        CF = float(values['CF'])
         try:
-            cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
-            
-            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso')
+            cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
+            if cicloSimples.erro == True:
+                sg.popup_error(cicloSimples.errorType,title='Error')
+            cicloSimples.CriaTabelas2('Simples')
+            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
         except ValueError:
            print('Valores de input inadequados') 
     #Tela Ciclo com Flash 1         
     if window == janela2 and event == 'Calcular ':
         Nis = values['Nis']
-        Fluido = values['Refri']
         CF = float(values['CF'])
         TemperaturaEvaporador = float(values['Te'])
         TemperaturaCondensador = float(values['Tc'])
@@ -66,9 +71,14 @@ while True:
         Tsub = float(values['Tsub'])
         PressaoInt = float(values['Pint'])
         try:
-            CicloDuplaCompressaoComFlash(fluido=Fluido,Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
+            cicloFlash1= RefrigeranteMaisEficienteCiclosFlash(refrigerantes=refrigerantes,Function=CicloDuplaCompressaoComFlash,Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
+            
+            if cicloFlash1.erro == True:
+                sg.popup_error(cicloFlash1.errorType)
+            cicloFlash1.CriaTabelas2("Flash tipo-2")
+            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash1.fluid} e sua tabela foi criada com sucesso !')
         except ValueError:
-            print('Valores de input inadequados') 
+            sg.popup_error('Valores de input inadequados') 
     #Tela Ciclo Cascata
     if window == janela2 and event == 'Calcular':
         RefrigerantePH = values['RefriHP']
@@ -83,13 +93,15 @@ while True:
         TemperaturaSaPL= float(values['TsaLP'])
         CF = float(values['CF'])
         try:
-            CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
+           cicloCascata= CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
+           if cicloCascata.erro == True:
+                sg.popup_error(cicloCascata.errorType)
+           sg.popup(f'COP do ciclo é: {cicloCascata.COP}. Tabela criada com sucesso !')
         except ValueError:
-            print('Valores de input inadequados') 
+            sg.popup_error('Valores de input inadequados') 
     #Tela Ciclo com Flash 2
     if window == janela2 and event == 'Calcular  ':
         Nis = values['Nis']
-        Fluido = values['Refri']
         CF = float(values['CF'])
         TemperaturaEvaporador = float(values['Te'])
         TemperaturaCondensador = float(values['Tc'])
@@ -97,10 +109,28 @@ while True:
         Tsub = float(values['Tsub'])
         PressaoInt = float(values['Pint'])
         try:
-            CicloComFlashCaso2(fluido=Fluido, Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
+            cicloFlash2= RefrigeranteMaisEficienteCiclosFlash(refrigerantes=refrigerantes,Function=CicloComFlashCaso2, Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
+            
+            if cicloFlash2.erro == True:
+                sg.popup_error(cicloFlash2.errorType)
+            cicloFlash2.CriaTabelas2("Flash tipo-1")
+            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash2.fluid} e sua tabela foi criada com sucesso !')
         except ValueError:
-            print('Valores de input inadequados') 
-   
+            sg.popup_error('Valores de input inadequados') 
+    # Ciclo com trocador
+    if window == janela2 and event == 'Executar ':
+        TemperaturaEvaporador = float(values['Te']) + 273.15
+        TemperaturaCondensador = float(values['Tc']) + 273.15
+        Nis = values['Nis']
+        CF = float(values['CF'])
+        try:
+            cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
+            if cicloSimples.erro == True:
+                sg.popup_error(cicloSimples.errorType,title='Error')
+            cicloSimples.CriaTabelas2('Simples')
+            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
+        except ValueError:
+           print('Valores de input inadequados') 
    
     
 

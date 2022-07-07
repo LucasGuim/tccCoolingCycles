@@ -18,7 +18,7 @@ Codigos para argumentos
     D densidade massica
 '''
 
-from sympy import false, symbols, Eq, solve
+from sympy import symbols, Eq, solve
 class Ciclo:
     def __init__(self,n,fluid): # n = numeros de pontos de controle (ou de equipamentos)
         self.fluid=fluid
@@ -30,6 +30,8 @@ class Ciclo:
         self.x=['Titulo:']+["-"]*n
         self.y=['Fracao massica']+["-"]*n
         self.m=['Vazão mássica']+["-"]*n
+        self.erro=['Erro']+["-"]*n
+        self.errorType=['Type of Error']+["-"]*n
         self.wc=['Trabalho do compressor']+["-"]*n
        
         
@@ -648,17 +650,30 @@ class Ciclo:
         self.q[i] = (self.h[i]- self.h[j])
         return self.q[i] * self.m[i]
 
-   
-        
-        
-    def subResfri(self,i,Tsub):
-    #i ponto de subResfri e j ponto da saida de condensador
+    def superAqueci(self,i,Tsa,j=0):
+        if Tsa == 0:
+            return None
+        if j == 0:
+            Temp = self.T[i]
+            self.T[i] = Temp + Tsa
+            self.h[i] = Prop('H','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3
+        else:
+            Temp = self.T[j]
+            self.T[i] = Temp + Tsa
+            self.h[i] = Prop('H','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3
+            self.s[i] = Prop('S','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3  
+    def subResfri(self,i,Tsub,j=0):    
         if Tsub == 0:
             return None
-        else:
+        if j == 0:
             Temp = self.T[i]
             self.T[i] = Temp - Tsub
             self.h[i] = Prop('H','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3
+        else:
+            Temp = self.T[j]
+            self.T[i] = Temp - Tsub
+            self.h[i] = Prop('H','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3
+            self.s[i] = Prop('S','T',self.T[i],'P',self.p[i]*1e3,self.fluid)/1e3  
         
     def CriaTabelaCascata(self,cicloLow):
         wb = Workbook()
@@ -675,14 +690,16 @@ class Ciclo:
     def CriaTabelas2(self,nome):
         wb = Workbook()
         ws = wb.active
-        colunas = ['A','B','C','D']
+        colunas = ['B','C','D']
         for c in colunas:
-            ws.column_dimensions[c].width=20 
+            ws.column_dimensions[c].width=25 
         ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
         for i in range(1,len(self.h)):
             ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2)])
         ws['F1'] = 'COP'
         ws['F2'] = self.COP
+        ws['G1'] = 'Vazão do refrigerante no evaporador'
+        ws['G2'] = self.m[1]
         
         wb.save(f'Ciclo {nome} - {self.fluid}-T0-{int(self.T[1])}-COP-{self.COP}.xlsx')
         
