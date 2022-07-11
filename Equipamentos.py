@@ -700,6 +700,7 @@ class Ciclo:
         ws['F2'] = self.COP
         ws['G1'] = 'Vazão do refrigerante no evaporador'
         ws['G2'] = self.m[1]
+        ws['H2'] = 'kg/s'
         
         wb.save(f'Ciclo {nome} - {self.fluid}-T0-{int(self.T[1])}-COP-{self.COP}.xlsx')
         

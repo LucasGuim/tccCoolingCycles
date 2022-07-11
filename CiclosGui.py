@@ -124,7 +124,7 @@ while True:
         Nis = values['Nis']
         CF = float(values['CF'])
         try:
-            cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
+            cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloSimplesComTrocador,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=0,Nis=Nis,t_sub=0)
             if cicloSimples.erro == True:
                 sg.popup_error(cicloSimples.errorType,title='Error')
             cicloSimples.CriaTabelas2('Simples')

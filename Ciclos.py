@@ -37,7 +37,7 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     ciclo.COP = round(ciclo.ResultadosCop(),2)
     return ciclo
 
-def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0):
+def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0,t_sub=0,t_superA=0):
     ciclo = Ciclo(6,fluido)
     if t_cond<=t_evap or t_cond==t_evap:
         ciclo.erro=True 
@@ -46,9 +46,7 @@ def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0):
     P_alta = (Prop('P','T',t_cond,'Q',0,fluido))/1e3 
     P_baixa = (Prop('P','T',t_evap,'Q',1,fluido))/1e3
     ciclo.Evapout(1,Pl=P_baixa,Tsa=0,T=t_evap)
-    print(ciclo.T[1])
     ciclo.superAqueci(1,(t_cond*0.03))
-    print(ciclo.T[1])
     ciclo.Compress(2,P_alta,1,Nis=Nis)
     ciclo.CondRef(3,P_alta,'sat')
     ciclo.subResfri(3,(t_cond*0.03))
@@ -57,6 +55,7 @@ def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0):
     ciclo.SetMass(1,mVasao)
     ciclo.Tub(1,2,3,4)
     ciclo.COP = round(ciclo.ResultadosCop(),2)
+    ciclo.Exibir('h','p','T')
     return ciclo
 
     
@@ -123,6 +122,7 @@ def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
         ciclo.errorType= "A temperatura do refrigerante no condensador deve ser superior a temperatura no evaporador" 
         return ciclo
     if Pint<=Pe or Pint>=Pc:
+        ciclo.COP=0
         ciclo.erro=True 
         ciclo.errorType= f"A pressão intermediária do fluido {ciclo.fluid} nessas condições deve ser superior a {Pe}kPa e inferior a {Pc}kPa" 
         return ciclo
@@ -169,12 +169,14 @@ def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     #Calculando Pc
     Pc = Prop('P','T',Tcond,'Q',0,fluido)/1e3
     if Tc<=Te or Tc==Te:
+        ciclo.COP=0
         ciclo.erro=True 
         ciclo.errorType= "A temperatura do refrigerante no condensador deve ser superior a temperatura no evaporador" 
         return ciclo 
     if Pint<=Pe or Pint>=Pc:
+        ciclo.COP=0
         ciclo.erro=True 
-        ciclo.errorType= f"A pressão intermediária do fluido {ciclo.fluid} nessas condições deve ser superior a {Pe}kPa e inferior a {Pc}kPa" 
+        ciclo.errorType= f"A pressão intermediária do fluido {ciclo.fluid} nessas condições deve ser superior a {round(Pe,2)}kPa e inferior a {round(Pc,2)}kPa" 
         return ciclo
     #Ponto 1 e 2 
     ciclo.Evapout(1,Pe,Tsa)
