@@ -35,6 +35,7 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
     ciclo.SetMass(1,mVasao)
     ciclo.Tub(1,2,3,4)
     ciclo.COP = round(ciclo.ResultadosCop(),2)
+    ciclo.FracaoMass(4)
     return ciclo
 
 def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0,t_sub=0,t_superA=0):
@@ -116,6 +117,7 @@ def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     Pe = Prop('P','T',Tev,'Q',1,fluido)/1e3
     #Calculando Pc
     Pc = Prop('P','T',Tcond,'Q',0,fluido)/1e3
+    
     #Verificação
     if Tc<=Te or Tc==Te:
         ciclo.erro=True 
@@ -153,8 +155,8 @@ def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     #Calculo do COP
     COP = round(CF/WbTotal,3)
     ciclo.COP = COP
-    ciclo.CriaTabelas2("Flash Tipo-1")
-    print(VazaoCond,VazaoEvap,WbCompressorAlta,WbCompressorBaixa,COP,sep=' , ')
+    ciclo.Exibir(['h','s','T','p'])
+    
     return ciclo
     
 #CicloDuplaCompressaoComFlash('R134a',1100,107.2,400,52.76)
@@ -168,6 +170,7 @@ def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     Pe = Prop('P','T',Tev,'Q',1,fluido)/1e3
     #Calculando Pc
     Pc = Prop('P','T',Tcond,'Q',0,fluido)/1e3
+    
     if Tc<=Te or Tc==Te:
         ciclo.COP=0
         ciclo.erro=True 
@@ -202,6 +205,8 @@ def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     Wtotal = Wca + Wcb
     COP = round(CF/Wtotal,2)
     ciclo.COP = COP
+    ciclo.Exibir(['h','s','T','p'])
+    
     return ciclo
     
     
@@ -236,7 +241,9 @@ def RefrigeranteMaisEficienteCiclosFlash(refrigerantes,Te,Tc,Pint,CF,Function=Ci
         if(ciclo.COP > copCicloHighest):
             copCicloHighest=ciclo.COP
             cicloHighest=ciclo           
-        
+    if(cicloHighest.COP ==0):
+        cicloHighest.erro=True
+        cicloHighest.errorType= 'Nenhum dos refrigerantes selecionados podem ser utilizados nessas condições'    
     
     return cicloHighest
 #RefrigeranteMaisEficienteCicloSimples(refrigerantes=['R134a','Water','R717','R600a','R290','R1234yf', 'R1234ze(E)', 'R410a'],t_evap=274,t_cond=313)

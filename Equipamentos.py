@@ -632,6 +632,15 @@ class Ciclo:
         #print(f'COP Calculado do ciclo: {round(Cop,4)}')
         return round(Cop,4)
 
+    def FracaoMass(self,n):
+        lista = []
+        for i in range(n):
+            lista.append(i+1)
+            self.y[i+1]= 1/Prop('D','P',self.p[i+1]*1e3 -1000,'T',self.T[i+1],self.fluid)
+        
+
+        
+
         
     # Condensador de refrigeração com eficiencia
    
@@ -687,10 +696,27 @@ class Ciclo:
         ws['F1'] = 'COP'
         ws['F2'] = self.COP
         wb.save(f'Ciclo Cascata - high pressure {self.fluid} - low pressure {cicloLow.fluid} -T0-{int(self.T[1])}.xlsx')
+    
+    def CriaTabelas1(self,nome):
+        wb = Workbook()
+        ws = wb.active
+        colunas = ['B','C','D','G']
+        for c in colunas:
+            ws.column_dimensions[c].width=25 
+        ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)','Fração massica (m³/kg)'])
+        for i in range(1,len(self.h)):
+            ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2),round(self.y[i],4)])
+        ws['G1'] = 'COP'
+        ws['G2'] = self.COP
+        ws['G3'] = 'Vazão no evaporador'
+        ws['H3'] = self.m[1]
+        ws['I3'] = 'kg/s'
+        ws['C15']= self.fluid
+        wb.save(f'Ciclo {nome} - {self.fluid}-COP-{self.COP}.xlsx')
     def CriaTabelas2(self,nome):
         wb = Workbook()
         ws = wb.active
-        colunas = ['B','C','D']
+        colunas = ['B','C','D','G']
         for c in colunas:
             ws.column_dimensions[c].width=25 
         ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
@@ -701,8 +727,8 @@ class Ciclo:
         ws['G1'] = 'Vazão do refrigerante no evaporador'
         ws['G2'] = self.m[1]
         ws['H2'] = 'kg/s'
-        
-        wb.save(f'Ciclo {nome} - {self.fluid}-T0-{int(self.T[1])}-COP-{self.COP}.xlsx')
+        ws['C15']= self.fluid
+        wb.save(f'Ciclo {nome} - {self.fluid}-COP-{self.COP}.xlsx')
         
         
 
@@ -719,3 +745,5 @@ class Ciclo:
         calorUtil = self.h[1] - self.h[4]
         COP = calorUtil/trabalhoCompressor
         return COP
+
+ 

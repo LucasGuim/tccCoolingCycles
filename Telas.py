@@ -32,12 +32,12 @@ def janela_CicloSimples():
 
         ]
     layoutLeft = [
-        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='Refri')],
+        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','NH3','R12','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='Refri')],
         [sg.Text('Capacidade Frigorífica em KW')],
         [sg.Text('Temperatura do refrigerante no condensador em °C:')],
         [sg.Text('Temperatura do refrigerante no evaporador em °C:')],
-        [sg.Text('Temperatura de superaquecimento')],
-        [sg.Text('Temperatura de subresfriamento')],
+        [sg.Text('Grau de superaquecimento')],
+        [sg.Text('Grau de subresfriamento')],
         [sg.Text('Eficiência isentropica do compressor',pad=((0,0),(20,10)))],
         [sg.Button('Voltar')]
         ]
@@ -53,17 +53,17 @@ def janela_CicloSimples():
 def janela_CicloCascataSimples():
     sg.theme('Reddit')
     layout = [
-            [sg.Text('Capacidade Frigorífica em KW'),sg.Input(key='CF',size=(5,5))],
-            [sg.Text('Fluido refrigerante ciclo de pressão alta'),sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='RefriHP')],
-            [sg.Text('Fluido refrigerante ciclo de pressão baixa'),sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='RefriPL')],
+            [sg.Text('Capacidade Frigorífica em KW'),sg.Input(key='CF',size=(5,5),default_text=0)],
+            [sg.Text('Fluido refrigerante ciclo de pressão alta'),sg.Combo(values=('R134a','R717','R600a','R12','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='RefriHP')],
+            [sg.Text('Fluido refrigerante ciclo de pressão baixa'),sg.Combo(values=('R134a','R717','R600a','R12','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='RefriPL')],
             [sg.Text('Eficiência isentropica do compressor de alta pressão'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='NisHP')],
             [sg.Text('Eficiência isentropica do compressor de baixa pressão'),sg.Slider(range=(0,1),default_value=(0.7),resolution=0.1,orientation='h',key='NisLP')],                
             [sg.Text('Temperatura do refrigerante no condensador de alta pressão em °C:'),sg.Input(key='TcHP',size=(5,5))],
             [sg.Text('Temperatura do refrigerante no evaporador de alta pressão em °C:'),sg.Input(key='TeHP',size=(5,5))],
-            [sg.Text('Temperatura de superaquecimento no ciclo pressão alta'),sg.Input(key='TsaHP',size=(5,5),default_text='0')],
+            [sg.Text('Grau de superaquecimento no ciclo pressão alta'),sg.Input(key='TsaHP',size=(5,5),default_text='0')],
             [sg.Text('Temperatura do refrigerante no condensador de baixa pressão em °C:'),sg.Input(key='TcLP',size=(5,5))],
             [sg.Text('Temperatura do refrigerante no evaporador de baixa pressão em °C:'),sg.Input(key='TeLP',size=(5,5))],
-            [sg.Text('Temperatura de superaquecimento no ciclo pressão baixa'),sg.Input(key='TsaLP',size=(5,5),default_text='0')],
+            [sg.Text('Grau de superaquecimento no ciclo pressão baixa'),sg.Input(key='TsaLP',size=(5,5),default_text='0')],
             [sg.Button('Voltar'),sg.Button('Calcular')],
              
             ]
@@ -76,7 +76,7 @@ def telaCicloFlashCaso2():
     layoutRight = [
 
         [sg.Button('Adicionar')],
-        [sg.Input(key='CF',size=(5,5))],
+        [sg.Input(key='CF',size=(5,5),default_text=0)],
         [sg.Input(key='Tc',size=(5,5))],
         [sg.Input(key='Te',size=(5,5))],
         [sg.Input(key='Tsa',size=(5,5),default_text='0')],
@@ -87,12 +87,12 @@ def telaCicloFlashCaso2():
 
         ]
     layoutLeft = [
-        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),pad=((0,0),(10,10)),key='Refri')],
+        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R12','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),pad=((0,0),(10,10)),key='Refri')],
         [sg.Text('Capacidade Frigorífica em KW')],
         [sg.Text('Temperatura do refrigerante no condensador em °C:')],
         [sg.Text('Temperatura do refrigerante no evaporador em °C:')],
-        [sg.Text('Temperatura de superaquecimento')],
-        [sg.Text('Temperatura de subresfriamento')],
+        [sg.Text('Grau de superaquecimento')],
+        [sg.Text('Grau de subresfriamento')],
         [sg.Text('Pressão Intermediaria em kPa:')],
         [sg.Text('Eficiência isentropica do compressor',pad=((5,0),(25,10)))],
         [sg.Button('Voltar')]
@@ -112,7 +112,7 @@ def telaCicloFlashCaso1():
     layoutRight = [
 
         [sg.Button('Adicionar')],
-        [sg.Input(key='CF',size=(5,5))],
+        [sg.Input(key='CF',size=(5,5),default_text=0)],
         [sg.Input(key='Tc',size=(5,5))],
         [sg.Input(key='Te',size=(5,5))],
         [sg.Input(key='Tsa',size=(5,5),default_text='0')],
@@ -123,12 +123,12 @@ def telaCicloFlashCaso1():
 
         ]
     layoutLeft = [
-        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),pad=((0,0),(10,10)),key='Refri')],
+        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R12','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),pad=((0,0),(10,10)),key='Refri')],
         [sg.Text('Capacidade Frigorífica em KW')],
         [sg.Text('Temperatura do refrigerante no condensador em °C:')],
         [sg.Text('Temperatura do refrigerante no evaporador em °C:')],
-        [sg.Text('Valor de superaquecimento em °C')],
-        [sg.Text('Valor de subresfriamento °C')],
+        [sg.Text('Grau de superaquecimento ')],
+        [sg.Text('Grau de subresfriamento')],
         [sg.Text('Pressão Intermediaria em kPa:')],
         [sg.Text('Eficiência isentropica do compressor',pad=((5,0),(25,10)))],
         [sg.Button('Voltar')]
@@ -156,7 +156,7 @@ def janela_CicloSimplesComTrocador():
 
         ]
     layoutLeft = [
-        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='Refri')],
+        [sg.Combo(values=('R134a','R717','R600a','R601a','R744','R22','R12','R32','R143A','R11','R290','R410a','R600','CH4','R152a','R404a','R407c','R1233ZDE','R1234yf','R1234ZE','SO2','R1234ZE(Z)','R1234ZF','1-Butene','CO','O2','ISOBUTENE','ISOHEXANE','H2'),key='Refri')],
         [sg.Text('Capacidade Frigorífica em KW')],
         [sg.Text('Temperatura do refrigerante no condensador em °C:')],
         [sg.Text('Temperatura do refrigerante no evaporador em °C:')],
@@ -167,7 +167,7 @@ def janela_CicloSimplesComTrocador():
     
     layoutCoringa = [ 
         [sg.Text('Calcule a eficiência do seu ciclo de refrigeração  ')],
-        #[sg.Output(size=(66,6))],
+        [sg.Output(size=(66,6))],
         [[sg.Col(layoutLeft), sg.Col(layoutRight)]]
       ]
 

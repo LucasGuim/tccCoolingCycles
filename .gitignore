@@ -1,1 +1,13 @@
 env
+build/CiclosGui/xref-CiclosGui.html
+build/CiclosGui/warn-CiclosGui.txt
+build/CiclosGui/Tree-02.toc
+*.toc
+*.pyz
+*.pyo
+*.pyc
+build/CiclosGui/CiclosGui.exe.manifest
+build/CiclosGui/CiclosGui.pkg
+build/CiclosGui/base_library.zip
+
+*.xlsx

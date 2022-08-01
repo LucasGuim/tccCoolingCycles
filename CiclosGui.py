@@ -57,7 +57,7 @@ while True:
             cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
             if cicloSimples.erro == True:
                 sg.popup_error(cicloSimples.errorType,title='Error')
-            cicloSimples.CriaTabelas2('Simples')
+            cicloSimples.CriaTabelas1('Simples')
             sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
         except ValueError:
            print('Valores de input inadequados') 
@@ -113,8 +113,10 @@ while True:
             
             if cicloFlash2.erro == True:
                 sg.popup_error(cicloFlash2.errorType)
-            cicloFlash2.CriaTabelas2("Flash tipo-1")
-            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash2.fluid} e sua tabela foi criada com sucesso !')
+            if cicloFlash2.COP >= 0:
+                cicloFlash2.CriaTabelas2("Flash tipo-1")
+                sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash2.fluid} e sua tabela foi criada com sucesso !')           
+            
         except ValueError:
             sg.popup_error('Valores de input inadequados') 
     # Ciclo com trocador
