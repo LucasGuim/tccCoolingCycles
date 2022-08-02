@@ -1,3 +1,4 @@
+from ast import Return
 import PySimpleGUI as sg
 from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
@@ -40,6 +41,8 @@ while True:
         janela1.un_hide()
     if window == janela2   and event == sg.WIN_CLOSED:
         break
+    if window == janela2   and event == 'Error':
+        break
     if window == janela2   and event == 'Adicionar':
         Fluido = values['Refri']
         refrigerantes.append(Fluido)
@@ -53,14 +56,17 @@ while True:
         Tsub = float(values['Tsub'])
         Nis = values['Nis']
         CF = float(values['CF'])
+        
         try:
             cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
             if cicloSimples.erro == True:
-                sg.popup_error(cicloSimples.errorType,title='Error')
-            cicloSimples.CriaTabelas1('Simples')
-            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
-        except ValueError:
-           print('Valores de input inadequados') 
+                sg.popup_error(cicloSimples.errorType,title='Error',modal=True)              
+            if cicloSimples.COP == True:
+                cicloSimples.CriaTabelas1('Simples')
+                sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
+        except:
+           sg.popup_error('Something went wrong...')  
+           break
     #Tela Ciclo com Flash 1         
     if window == janela2 and event == 'Calcular ':
         Nis = values['Nis']
@@ -74,11 +80,14 @@ while True:
             cicloFlash1= RefrigeranteMaisEficienteCiclosFlash(refrigerantes=refrigerantes,Function=CicloDuplaCompressaoComFlash,Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
             
             if cicloFlash1.erro == True:
-                sg.popup_error(cicloFlash1.errorType)
-            cicloFlash1.CriaTabelas2("Flash tipo-2")
-            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash1.fluid} e sua tabela foi criada com sucesso !')
-        except ValueError:
-            sg.popup_error('Valores de input inadequados') 
+                sg.popup_error(cicloFlash1.errorType,title='Error',modal=True)
+                
+            if cicloFlash1.COP > 0:
+                cicloFlash1.CriaTabelas2("Flash tipo-2")
+                sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash1.fluid} e sua tabela foi criada com sucesso !')
+        except:
+            sg.popup_error('Something went wrong...') 
+            break
     #Tela Ciclo Cascata
     if window == janela2 and event == 'Calcular':
         RefrigerantePH = values['RefriHP']
@@ -97,8 +106,9 @@ while True:
            if cicloCascata.erro == True:
                 sg.popup_error(cicloCascata.errorType)
            sg.popup(f'COP do ciclo é: {cicloCascata.COP}. Tabela criada com sucesso !')
-        except ValueError:
-            sg.popup_error('Valores de input inadequados') 
+           break
+        except:
+            sg.popup_error('Something went wrong...') 
     #Tela Ciclo com Flash 2
     if window == janela2 and event == 'Calcular  ':
         Nis = values['Nis']
@@ -112,13 +122,14 @@ while True:
             cicloFlash2= RefrigeranteMaisEficienteCiclosFlash(refrigerantes=refrigerantes,Function=CicloComFlashCaso2, Tc=TemperaturaCondensador,Te=TemperaturaEvaporador,Tsub=Tsub,Tsa=Tsa,Pint=PressaoInt,CF=CF,Nis=Nis)
             
             if cicloFlash2.erro == True:
-                sg.popup_error(cicloFlash2.errorType)
-            if cicloFlash2.COP >= 0:
+                sg.popup_error(cicloFlash2.errorType,title='Error',modal=True)
+            if cicloFlash2.COP > 0:
                 cicloFlash2.CriaTabelas2("Flash tipo-1")
                 sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash2.fluid} e sua tabela foi criada com sucesso !')           
             
-        except ValueError:
-            sg.popup_error('Valores de input inadequados') 
+        except:
+            sg.popup_error('Something went wrong...') 
+            break
     # Ciclo com trocador
     if window == janela2 and event == 'Executar ':
         TemperaturaEvaporador = float(values['Te']) + 273.15
@@ -128,11 +139,13 @@ while True:
         try:
             cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloSimplesComTrocador,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=0,Nis=Nis,t_sub=0)
             if cicloSimples.erro == True:
-                sg.popup_error(cicloSimples.errorType,title='Error')
-            cicloSimples.CriaTabelas2('Simples')
-            sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
-        except ValueError:
-           print('Valores de input inadequados') 
+                sg.popup_error(cicloSimples.errorType,title='Error',modal=True)
+            if cicloSimples.COP > 0:
+                cicloSimples.CriaTabelas2('Simples com Trocador de calor')
+                sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
+        except:
+           sg.popup_error('Something went wrong...')
+           break
    
     
 
