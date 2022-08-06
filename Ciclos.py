@@ -233,6 +233,9 @@ def RefrigeranteMaisEficienteCicloSimples(refrigerantes,t_evap,t_cond,Function=C
         if(ciclo.COP >= copCicloHighest):
             copCicloHighest=ciclo.COP
             cicloHighest=ciclo
+        if(cicloHighest.COP ==0 and cicloHighest.erro !=True):
+            cicloHighest.erro=True
+            cicloHighest.errorType= 'Nenhum dos refrigerantes selecionados podem ser utilizados nessas condições'   
        
     return cicloHighest
     

@@ -700,10 +700,10 @@ class Ciclo:
     def CriaTabelas1(self,nome):
         wb = Workbook()
         ws = wb.active
-        colunas = ['B','C','D','G']
+        colunas = ['B','C','D','G','F']
         for c in colunas:
             ws.column_dimensions[c].width=25 
-        ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)','Fração massica (m³/kg)'])
+        ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)','Volume específico (m³/kg)'])
         for i in range(1,len(self.h)):
             ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2),round(self.y[i],4)])
         ws['G1'] = 'COP'
