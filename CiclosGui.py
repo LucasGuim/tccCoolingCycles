@@ -1,4 +1,3 @@
-from ast import Return
 import PySimpleGUI as sg
 from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
@@ -25,11 +24,11 @@ while True:
         janela1.hide()
         janela2.bring_to_front()
     if window == janela1 and event =='Continuar' and values['CicloCameraFlash'] == True:        
-        janela2 = telaCicloFlashCaso1()
+        janela2 = telaCicloFlashCaso2()
         janela1.hide()
         janela2.bring_to_front()
     if window == janela1 and event =='Continuar' and values['CicloCameraFlashCaso2'] == True:        
-        janela2 = telaCicloFlashCaso2()
+        janela2 = telaCicloFlashCaso1()
         janela1.hide()
         janela2.bring_to_front()
     if window == janela1 and event =='Continuar' and values['CicloSimplesTrocador'] == True:        
@@ -61,7 +60,7 @@ while True:
             cicloSimples= RefrigeranteMaisEficienteCicloSimples(refrigerantes=refrigerantes,Function=CicloCompressaoDeVaporComTemperaturas,CF=CF,t_cond=TemperaturaCondensador,t_evap=TemperaturaEvaporador,t_superA=Tsa,Nis=Nis,t_sub=Tsub)
             if cicloSimples.erro == True:
                 sg.popup_error(cicloSimples.errorType,title='Error',modal=True)              
-            if cicloSimples.COP == True:
+            if cicloSimples.COP != 0:
                 cicloSimples.CriaTabelas1('Simples')
                 sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
         except:
@@ -83,7 +82,7 @@ while True:
                 sg.popup_error(cicloFlash1.errorType,title='Error',modal=True)
                 
             if cicloFlash1.COP > 0:
-                cicloFlash1.CriaTabelas2("Flash tipo-2")
+                cicloFlash1.CriaTabelas1("Flash tipo-2")
                 sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash1.fluid} e sua tabela foi criada com sucesso !')
         except:
             sg.popup_error('Something went wrong...') 
@@ -124,7 +123,7 @@ while True:
             if cicloFlash2.erro == True:
                 sg.popup_error(cicloFlash2.errorType,title='Error',modal=True)
             if cicloFlash2.COP > 0:
-                cicloFlash2.CriaTabelas2("Flash tipo-1")
+                cicloFlash2.CriaTabelas1("Flash tipo-1")
                 sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash2.fluid} e sua tabela foi criada com sucesso !')           
             
         except:
@@ -141,7 +140,7 @@ while True:
             if cicloSimples.erro == True:
                 sg.popup_error(cicloSimples.errorType,title='Error',modal=True)
             if cicloSimples.COP > 0:
-                cicloSimples.CriaTabelas2('Simples com Trocador de calor')
+                cicloSimples.CriaTabelas1('Simples com Trocador de calor')
                 sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloSimples.fluid} e sua tabela foi criada com sucesso !')
         except:
            sg.popup_error('Something went wrong...')

@@ -22,7 +22,8 @@ from sympy import symbols, Eq, solve
 class Ciclo:
     def __init__(self,n,fluid): # n = numeros de pontos de controle (ou de equipamentos)
         self.fluid=fluid
-        self.COP = n     
+        self.COP = n    
+        self.COPcarnot = n 
         self.p=['Pressao (kPa):']+["-"]*n
         self.h=['Entalpia (kJ/kg):']+["-"]*n
         self.s=['Entropia (kJ/kgK):']+["-"]*n
@@ -695,41 +696,30 @@ class Ciclo:
         
         ws['F1'] = 'COP'
         ws['F2'] = self.COP
+        ws['F3'] = 'Eficiencia de refrigeração'
+        ws['F4'] = self.COPcarnot
         wb.save(f'Ciclo Cascata - high pressure {self.fluid} - low pressure {cicloLow.fluid} -T0-{int(self.T[1])}.xlsx')
     
     def CriaTabelas1(self,nome):
         wb = Workbook()
         ws = wb.active
-        colunas = ['B','C','D','G','F']
+        colunas = ['B','C','D','E','G','F']
         for c in colunas:
             ws.column_dimensions[c].width=25 
         ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)','Volume específico (m³/kg)'])
         for i in range(1,len(self.h)):
             ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2),round(self.y[i],4)])
         ws['G1'] = 'COP'
-        ws['G2'] = self.COP
+        ws['H1'] = self.COP
+        ws['G2'] = 'Eficiencia de refrigeração'
+        ws['H2'] = self.COPcarnot
         ws['G3'] = 'Vazão no evaporador'
         ws['H3'] = self.m[1]
         ws['I3'] = 'kg/s'
+        ws['B15']= 'Fluido Refrigerante'
         ws['C15']= self.fluid
         wb.save(f'Ciclo {nome} - {self.fluid}-COP-{self.COP}.xlsx')
-    def CriaTabelas2(self,nome):
-        wb = Workbook()
-        ws = wb.active
-        colunas = ['B','C','D','G']
-        for c in colunas:
-            ws.column_dimensions[c].width=25 
-        ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
-        for i in range(1,len(self.h)):
-            ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2)])
-        ws['F1'] = 'COP'
-        ws['F2'] = self.COP
-        ws['G1'] = 'Vazão do refrigerante no evaporador'
-        ws['G2'] = self.m[1]
-        ws['H2'] = 'kg/s'
-        ws['C15']= self.fluid
-        wb.save(f'Ciclo {nome} - {self.fluid}-COP-{self.COP}.xlsx')
-        
+   
         
 
     def ResultadosWc(self):
@@ -745,5 +735,9 @@ class Ciclo:
         calorUtil = self.h[1] - self.h[4]
         COP = calorUtil/trabalhoCompressor
         return COP
+    def ResultadosCarnot(self,Te,Tc):
+        CopCarnot = Te/(Tc-Te)
+        Neficiente = self.COP/CopCarnot
+        return Neficiente
 
  

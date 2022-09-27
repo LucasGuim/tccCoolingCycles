@@ -10,7 +10,7 @@ def janela_Inicial():
     Ciclo4 = [[sg.Radio('Ciclo com camera Flash, tipo - 1','Ciclo',key='CicloCameraFlashCaso2')],[sg.Image(r'img4.png',size=(420,400))]]
     Ciclo5 = [[sg.Radio('Ciclo Simples com trocador de calor','Ciclo',key='CicloSimplesTrocador')],[sg.Image(r'img6.png',size=(420,400))]]
     
-    layout = [  [sg.Text('Olá, Lucas ')],
+    layout = [  [sg.Text('Olá ')],
                 [sg.Text('Qual tipo de ciclo quer calcular ?')],
                 [sg.TabGroup([[sg.Tab('Ciclos',Ciclo1),sg.Tab('Ciclo 2',Ciclo2),sg.Tab('Ciclo 3',Ciclo3),sg.Tab('Ciclo 4',Ciclo4),sg.Tab('Ciclo 5',Ciclo5)]])],
                 [sg.Button('Continuar')]

@@ -4,17 +4,7 @@ from Equipamentos import *
 from CoolProp.CoolProp import PropsSI as Prop
 
 def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante=0,t_superA=0,Nis=1.0,t_sub=0,CF=0):
-    '''
-        Descricao:
-        Parametros:
-            fluido: Fluido refrigerante
-            eficiencia_is: Eficiencia isentropica do compressor
-            t_cond: Temperatura do refrigerante no condensador [K]
-            t_evap: Temperatura do refrigerante no evaporador [K]
-            vazao_refrigerante: fluxo do refrigerante 
-            t_superA: Temperatura de superaquecimento K 
-
-    '''
+    
     ciclo = Ciclo(4,fluido)
     try:
         if t_cond<=t_evap or t_cond==t_evap:
@@ -34,6 +24,7 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
         ciclo.Tub(1,2,3,4)
         ciclo.COP = round(ciclo.ResultadosCop(),2)
         ciclo.FracaoMass(4)
+        ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=t_evap,Tc=t_cond)
     except ValueError:
              ciclo.COP=0
     return ciclo
@@ -57,6 +48,7 @@ def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0,t_sub=0,t_superA=0
         ciclo.SetMass(1,mVasao)
         ciclo.Tub(1,2,3,4)
         ciclo.COP = round(ciclo.ResultadosCop(),3)
+        ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=t_evap,Tc=t_cond)
     except ValueError:
         ciclo.COP=0
     return ciclo
@@ -157,13 +149,14 @@ def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
         WbTotal = WbCompressorAlta + WbCompressorBaixa
         #Calculo do COP
         COP = round(CF/WbTotal,3)
+        ciclo.FracaoMass(9)
         ciclo.COP = COP
-        ciclo.Exibir(['h','s','T','p'])
+        ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=Tev,Tc=Tcond)
     except ValueError:
         ciclo.COP= 0
     return ciclo
     
-#CicloDuplaCompressaoComFlash('R134a',1100,107.2,400,52.76)
+
 
 def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     ciclo = Ciclo(8,fluid=fluido)
@@ -210,6 +203,8 @@ def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
         Wtotal = Wca + Wcb
         COP = round(CF/Wtotal,2)
         ciclo.COP = COP
+        ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=Tev,Tc=Tcond)
+        ciclo.FracaoMass(8)
     except ValueError:
         ciclo.COP = 0
     
@@ -217,7 +212,6 @@ def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     
     
     
-#CicloComFlashCaso1(fluido='R717',Tc=24.9,Te=-20,Pint=500,CF=249.7,Tsuper=0,Tsub=0)
 
 def RefrigeranteMaisEficienteCicloSimples(refrigerantes,t_evap,t_cond,Function=CicloCompressaoDeVaporComTemperaturas,CF=1,t_superA=0,Nis=1.0,t_sub=0):
     copCicloHighest = 0
@@ -259,4 +253,3 @@ def RefrigeranteMaisEficienteCiclosFlash(refrigerantes,Te,Tc,Pint,CF,Function=Ci
         cicloHighest.errorType= 'Nenhum dos refrigerantes selecionados podem ser utilizados nessas condições'    
     
     return cicloHighest
-#RefrigeranteMaisEficienteCicloSimples(refrigerantes=['R134a','Water','R717','R600a','R290','R1234yf', 'R1234ze(E)', 'R410a'],t_evap=274,t_cond=313)
