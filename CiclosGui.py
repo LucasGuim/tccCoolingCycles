@@ -96,18 +96,18 @@ while True:
         TemperaturaCondPH= float(values['TcHP']) + 273.15 
         TemperaturaEvaPH= float(values['TeHP']) + 273.15
         TemperaturaSaPH= float(values['TsaHP'])
+        SubResfriPH= float(values['TsubH'])
         TemperaturaCondPL= float(values['TcLP']) + 273.15
         TemperaturaEvaPL= float(values['TeLP']) + 273.15
         TemperaturaSaPL= float(values['TsaLP'])
+        SubResfriPL= float(values['TsubL'])
         CF = float(values['CF'])
-        try:
-           cicloCascata= CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL)
+                  cicloCascata= CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL,TsubL=SubResfriPL,TsubH=SubResfriPH)
            if cicloCascata.erro == True:
                 sg.popup_error(cicloCascata.errorType)
            sg.popup(f'COP do ciclo é: {cicloCascata.COP}. Tabela criada com sucesso !')
            break
-        except:
-            sg.popup_error('Something went wrong...') 
+        
     #Tela Ciclo com Flash 2
     if window == janela2 and event == 'Calcular  ':
         Nis = values['Nis']

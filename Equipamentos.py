@@ -22,7 +22,7 @@ from sympy import symbols, Eq, solve
 class Ciclo:
     def __init__(self,n,fluid): # n = numeros de pontos de controle (ou de equipamentos)
         self.fluid=fluid
-        self.COP = n    
+        self.COP = 0    
         self.COPcarnot = n 
         self.p=['Pressao (kPa):']+["-"]*n
         self.h=['Entalpia (kJ/kg):']+["-"]*n
@@ -31,8 +31,8 @@ class Ciclo:
         self.x=['Titulo:']+["-"]*n
         self.y=['Fracao massica']+["-"]*n
         self.m=['Vazão mássica']+["-"]*n
-        self.erro=['Erro']+["-"]*n
-        self.errorType=['Type of Error']+["-"]*n
+        self.erro=False
+        self.errorType=''
         self.wc=['Trabalho do compressor']+["-"]*n
        
         

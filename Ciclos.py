@@ -49,12 +49,13 @@ def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0,t_sub=0,t_superA=0
         ciclo.Tub(1,2,3,4)
         ciclo.COP = round(ciclo.ResultadosCop(),3)
         ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=t_evap,Tc=t_cond)
+        ciclo.FracaoMass(4)
     except ValueError:
         ciclo.COP=0
     return ciclo
 
     
-def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,TsaHP='sat',TsaLP='sat',NisHP=1.0,NisLP=1.0,Tsub=0):
+def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,CapacidadeFrigorifica,TsaHP='sat',TsaLP='sat',NisHP=1.0,NisLP=1.0,TsubH=0.0,TsubL=0.0):
     #Ciclo High Pressure
     cicloHigh = Ciclo(4,fluidoSup)
     if THcond<=THevap or THcond==THevap:
@@ -66,9 +67,11 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     PHcond = Prop('P','T',THcond,'Q',0,fluidoSup)/1e3
     cicloHigh.Compress(2,PHcond,1,Nis=NisHP)
     cicloHigh.Condout(3,2,PHcond,'sat')
-    cicloHigh.subResfri(3,Tsub)
+    cicloHigh.subResfri(3,TsubH)
     cicloHigh.VE(4,cicloHigh.p[1],3)
     CfCicloHigh = cicloHigh.ResultadosCf()
+    cicloHigh.COP=cicloHigh.ResultadosCop()
+    print(cicloHigh.COP)
     #Ciclo Low Pressure
     cicloLow = Ciclo(4,fluidoInf)
     if TLcond<=TLeva or TLcond==TLeva:
@@ -80,8 +83,10 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     PLcond = Prop('P','T',TLcond,'Q',0,fluidoInf)/1e3
     cicloLow.Compress(2,PLcond,1,Nis=NisLP)
     cicloLow.Condout(3,2,PLcond,'sat')
-    cicloLow.subResfri(3,Tsub)
+    cicloLow.subResfri(3,TsubL)
     cicloLow.VE(4,cicloLow.p[1],3)
+    cicloLow.COP=cicloLow.ResultadosCop()
+    print(cicloLow.COP)
 
     #Descobrindo as vazões de refrigerante 
     #     
@@ -107,53 +112,48 @@ def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     ciclo = Ciclo(9,fluido)    
     Tev = Te +273.15
     Tcond = Tc + 273.15
-    try:
-        #Calculando Pe 
-        Pe = Prop('P','T',Tev,'Q',1,fluido)/1e3
-        #Calculando Pc
-        Pc = Prop('P','T',Tcond,'Q',0,fluido)/1e3
-        
-        #Verificação
-        if Tc<=Te or Tc==Te:
-                ciclo.erro=True 
-                ciclo.errorType= "A temperatura do refrigerante no condensador deve ser superior a temperatura no evaporador" 
-                return ciclo
-        if Pint<=Pe or Pint>=Pc:
-                ciclo.COP=0
-                ciclo.erro=True 
-                ciclo.errorType= f"A pressão intermediária do fluido {ciclo.fluid} nessas condições deve ser superior a {Pe}kPa e inferior a {Pc}kPa" 
-                return ciclo
-        #Definindo pontos 1 e 2 
-        ciclo.Evapout(1,Pe,Tsa=Tsa)
-        ciclo.Compress(2,Pint,1,Nis=Nis)
-        # Defindo saida do condensador
-        ciclo.Condout(5,4,Pc,'sat')
-        ciclo.subResfri(5,Tsub)
-        #Primeira valvula de expansão 
-        ciclo.VE(6,Pint,5)
-        #Camera Flash 
-        ciclo.Tflash(7,9,[6],P=Pint)
-        ciclo.VE(8,Pe,7)
-        #Camera de Mistura
-        ciclo.CameraMistura(3,2,9)
-        #Segundo compressor
-        ciclo.Compress(4,Pc,1,Nis=Nis)
-        #Taxa de calor absorvido no compressor por kg de refrigerante
-        qh = ciclo.h[1] - ciclo.h[8]
-        #Descobrindo as vazões de refrigerante
-        VazaoEvap = round(CF/qh,3)
-        VazaoCond = round(VazaoEvap/(1-ciclo.x[6]),3)
-        #Trabalho dos compressores
-        WbCompressorBaixa = VazaoEvap*(ciclo.h[2]-ciclo.h[1])
-        WbCompressorAlta = VazaoCond*(ciclo.h[4]-ciclo.h[3])
-        WbTotal = WbCompressorAlta + WbCompressorBaixa
-        #Calculo do COP
-        COP = round(CF/WbTotal,3)
-        ciclo.FracaoMass(9)
-        ciclo.COP = COP
-        ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=Tev,Tc=Tcond)
-    except ValueError:
-        ciclo.COP= 0
+    #Calculando Pe 
+    Pe = Prop('P','T',Tev,'Q',1,fluido)/1e3
+    #Calculando Pc
+    Pc = Prop('P','T',Tcond,'Q',0,fluido)/1e3
+    #Verificação
+    if Tc<=Te or Tc==Te:
+        ciclo.erro=True 
+        ciclo.errorType= "A temperatura do refrigerante no condensador deve ser superior a temperatura no evaporador" 
+        return ciclo
+    if Pint<=Pe or Pint>=Pc:
+        ciclo.COP=0
+        ciclo.erro=True 
+        ciclo.errorType= f"A pressão intermediária do fluido {ciclo.fluid} nessas condições deve ser superior a {Pe}kPa e inferior a {Pc}kPa" 
+        return ciclo
+    #Definindo pontos 1 e 2 
+    ciclo.Evapout(1,Pe,Tsa=Tsa)
+    ciclo.Compress(2,Pint,1,Nis=Nis)
+    # Defindo saida do condensador
+    ciclo.Condout(5,4,Pc,'sat')
+    ciclo.subResfri(5,Tsub)
+    #Primeira valvula de expansão 
+    ciclo.VE(6,Pint,5)
+    #Camera Flash 
+    ciclo.Tflash(7,9,[6],P=Pint)
+    ciclo.VE(8,Pe,7)
+    #Camera de Mistura
+    ciclo.CameraMistura(3,2,9)
+    #Segundo compressor
+    ciclo.Compress(4,Pc,1,Nis=Nis)
+    #Taxa de calor absorvido no compressor por kg de refrigerante
+    qh = ciclo.h[1] - ciclo.h[8]
+    #Descobrindo as vazões de refrigerante
+    VazaoEvap = round(CF/qh,3)
+    VazaoCond = round(VazaoEvap/(1-ciclo.x[6]),3)
+    #Trabalho dos compressores
+    WbCompressorBaixa = VazaoEvap*(ciclo.h[2]-ciclo.h[1])
+    WbCompressorAlta = VazaoCond*(ciclo.h[4]-ciclo.h[3])
+    WbTotal = WbCompressorAlta + WbCompressorBaixa
+    #Calculo do COP
+    COP = round(CF/WbTotal,3)
+    ciclo.COP = COP
+    ciclo.FracaoMass(8)
     return ciclo
     
 
