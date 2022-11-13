@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from Equipamentos import *
+from Equip_metodos import *
 from CoolProp.CoolProp import PropsSI as Prop
 from Ciclos import *
 from Telas import *
@@ -102,12 +102,13 @@ while True:
         TemperaturaSaPL= float(values['TsaLP'])
         SubResfriPL= float(values['TsubL'])
         CF = float(values['CF'])
-                  cicloCascata= CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL,TsubL=SubResfriPL,TsubH=SubResfriPH)
-           if cicloCascata.erro == True:
+        cicloCascata= CicloCascata3Pressoes(fluidoSup=RefrigerantePH,fluidoInf=RefrigerantePL,THcond=TemperaturaCondPH,THevap=TemperaturaEvaPH,TLcond=TemperaturaCondPL,TLeva=TemperaturaEvaPL,CapacidadeFrigorifica=CF,NisHP=NisHP,NisLP=NisLP,TsaHP=TemperaturaSaPH,TsaLP=TemperaturaSaPL,TsubL=SubResfriPL,TsubH=SubResfriPH)
+        if cicloCascata.erro == True:
                 sg.popup_error(cicloCascata.errorType)
-           sg.popup(f'COP do ciclo é: {cicloCascata.COP}. Tabela criada com sucesso !')
-           break
+        sg.popup(f'COP do ciclo é: {cicloCascata.COP}. Tabela criada com sucesso !')
         
+
+
     #Tela Ciclo com Flash 2
     if window == janela2 and event == 'Calcular  ':
         Nis = values['Nis']

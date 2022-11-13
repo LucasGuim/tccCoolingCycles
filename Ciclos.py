@@ -1,6 +1,6 @@
 
 
-from Equipamentos import *
+from Equip_metodos import *
 from CoolProp.CoolProp import PropsSI as Prop
 
 def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigerante=0,t_superA=0,Nis=1.0,t_sub=0,CF=0):
@@ -23,6 +23,7 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
         ciclo.SetMass(1,mVasao)
         ciclo.Tub(1,2,3,4)
         ciclo.COP = round(ciclo.ResultadosCop(),2)
+        ciclo.wc=ciclo.ResultadosWc()
         ciclo.FracaoMass(4)
         ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=t_evap,Tc=t_cond)
     except ValueError:
