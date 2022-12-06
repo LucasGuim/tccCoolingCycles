@@ -3,15 +3,14 @@ import PySimpleGUI as sg
 
 
 def janela_Inicial():
-    sg.theme('Dark Grey 13')
+    sg.theme('Dark Blue 14')
     Ciclo1 =  [[sg.Radio('Ciclo Simples','Ciclo',key='CicloSimples')],[sg.Image(r'img1.png',size=(420,400))]]
     Ciclo2 = [[sg.Radio('Ciclo Cascata','Ciclo',key='CicloCascataSimples')],[sg.Image(r'img2.png',size=(420,400))]]
     Ciclo3=[[sg.Radio('Ciclo com camera Flash, tipo - 2','Ciclo',key='CicloCameraFlash')],[sg.Image(r'img3.png',size=(420,400))]]
     Ciclo4 = [[sg.Radio('Ciclo com camera Flash, tipo - 1','Ciclo',key='CicloCameraFlashCaso2')],[sg.Image(r'img4.png',size=(420,400))]]
     Ciclo5 = [[sg.Radio('Ciclo Simples com trocador de calor','Ciclo',key='CicloSimplesTrocador')],[sg.Image(r'img6.png',size=(420,400))]]
     
-    layout = [  [sg.Text('Olá ')],
-                [sg.Text('Qual tipo de ciclo quer calcular ?')],
+    layout = [  [sg.Text('Qual tipo de ciclo quer calcular ?')],
                 [sg.TabGroup([[sg.Tab('Ciclos',Ciclo1),sg.Tab('Ciclo 2',Ciclo2),sg.Tab('Ciclo 3',Ciclo3),sg.Tab('Ciclo 4',Ciclo4),sg.Tab('Ciclo 5',Ciclo5)]])],
                 [sg.Button('Continuar')]
             ]

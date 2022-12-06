@@ -22,6 +22,7 @@ class Ciclo:
         self.erro=False
         self.errorType=''
         self.wc=['Trabalho do compressor']+["-"]*n
+        self.wb=['Trabalho do compressor baixa pressao']+["-"]*n
        
         
        
@@ -101,61 +102,7 @@ class Ciclo:
             self.s[i] = Prop('S','P',P*1e3,'T',T,self.fluid)/1e3
             self.T[i] = T
 
-    def Bomba(self,i,Pm = 0,Pj = 0,Tm=0):
-        # i saida | Pm pressao saida | Pj pressao entrada | Tm Temperatura entrada
-        self.equip[i] = 'Bomba'
-        if Pm == 0:
-            Pm = self.p[i]
-        else:
-            self.p[i] = Pm
-            
-        if Pj == 0:
-            if i == 1:
-                Pj = self.p[i-2]
-            else:
-                Pj = self.p[i-1]
-                
-        if Tm == 0: # considera liquido saturado
-            vj = Prop('D','P',Pj*1e3,'Q',0,self.fluid)**-1
-            vm = Prop('D','P',Pm*1e3,'Q',0,self.fluid)**-1
-            v = (vj+vm)/2 # media do volume especifico (para liquido saturado a diferenca 
-                          # entre os volumes especificos sera muito pequena)
-            wb = round(v*(Pm-Pj),2)
-            self.wb[i] = wb
-            
-            if i == 1:
-                self.h[i-2] = Prop('H','P',Pj*1e3,'Q',0,self.fluid)/1e3
-                self.h[i] = self.h[i-2] + wb
-                self.y[i] = self.y[i-2]
-            else:
-                self.h[i-1] = Prop('H','P',Pj*1e3,'Q',0,self.fluid)/1e3
-                self.h[i] = self.h[i-1] + wb
-                self.y[i] = self.y[i-1]
-
-        else: # caso T seja passado
-            self.h[i] = Prop('H','P',Pm*1e3,'T',Tm,self.fluid)/1e3
-            self.T[i] = Tm
-            if i == 1:
-                wb = self.h[i]-self.h[i-2]
-            else:
-                wb = self.h[i]-self.h[i-1]
-            self.wb[i] = wb
-        return wb
-
-    
-
-    # Trabalho das bombas do ciclo
-    def TrabB(self):
-        self.Wb = 0
-        for i in self.wb:
-            if self.y[i] == '-':
-                if i == 1:
-                    self.y[i] = self.y[i-2]
-                else:
-                    self.y[i] = self.y[i-1]
-            self.Wb += self.wb[i]*self.y[i]
-        return self.Wb
-  
+     
 
     # Valvula de expansao
     def VE(self,i,P=None,j=0):
@@ -172,69 +119,13 @@ class Ciclo:
         self.T[i] = Prop('T','H',self.h[i]*1e3,'P',self.p[i]*1e3,self.fluid)
         self.x[i] = Prop('Q','H',self.h[i]*1e3,'P',self.p[i]*1e3,self.fluid)
 
-    def ASi(self,m,ti,to,r=0):
-        # igualando pressao do duto para caldeira
-        if m == 1:
-            if self.p[m] == '-':
-                self.p[m] = self.p[m-2]
-            else:
-                self.p[m-2] = self.p[m]
-        else:
-            if self.p[m] == '-':
-                self.p[m] = self.p[m-1]
-            else:
-                self.p[m-1] = self.p[m]
-        # Supondo estado saturação na saida do trocador (após turbina)
-        self.p[to] = self.p[ti]
-        self.h[to] = Prop('H','P',self.p[to]*1e3,'Q',0,self.fluid)/1e3
-        self.T[to] = Prop('T','P',self.p[to]*1e3,'Q',0,self.fluid)
-        # Supondo as temperaturas de saida iguais
-        self.T[m] = self.T[to]
-        self.h[m] = Prop('H','P',self.p[m]*1e3,'T',self.T[m],self.fluid)/1e3
-
-    def ASTI(self,m,ti,to,r=0,j=0):
-        # igualando pressao do duto para caldeira
-        if j == 0:
-            if m == 1:
-                if self.p[m] == '-':
-                    self.p[m-2] = self.p[m]
-                else:
-                    self.p[m] = self.p[m-2]
-            else:
-                if self.p[m] == '-':
-                    self.p[m] = self.p[m-1]
-                else:
-                    self.p[m-1] = self.p[m]
-        else:
-            if self.p[m] == '-':
-                self.p[m] = self.p[j]
-            else:
-                self.p[j] = self.p[m]
-        # Supondo estado saturação na saida do trocador (após turbina)
-        self.p[to] = self.p[ti]
-        self.h[to] = Prop('H','P',self.p[to]*1e3,'Q',0,self.fluid)/1e3
-        self.T[to] = Prop('T','P',self.p[to]*1e3,'Q',0,self.fluid)
-        # Supondo as temperaturas de saida iguais
-        self.T[m] = self.T[to]
-        self.h[m] = Prop('H','P',self.p[m]*1e3,'T',self.T[m],self.fluid)/1e3
-        # Realizando o balanço de energia
-        if r == 0:
-            if m == 1:
-                self.y[ti] = self.y[to] = (self.h[m] - self.h[m-2])/(self.h[ti]-self.h[to])
-            else:
-                self.y[ti] = self.y[to] = (self.h[m] - self.h[m-1])/(self.h[ti]-self.h[to])
-        else:
-            if m == 1:
-                self.y[ti] = ((self.h[to]-self.h[r])*self.y[r] + self.h[m] - self.h[m-2])/(self.h[ti]-self.h[to])
-            else:
-                self.y[ti] = ((self.h[to]-self.h[r])*self.y[r] + self.h[m] - self.h[m-1])/(self.h[ti]-self.h[to])
-
+    
     
 
-    # Condensador refrigeracao
+    # Condensador 
     def CondRef(self,i,Ph,Tsr='sat'):
     
-        # Ph pressao high | Tsr temperatura de sub resfriamento
+        # Ph pressao high | Tsr subresfriamento
         self.p[i] = Ph
         if Tsr == 'sat':
             self.T[i] = Prop('T','P',Ph*1e3,'Q',0,self.fluid)
@@ -256,7 +147,7 @@ class Ciclo:
             
     # Compressor
     def Compress(self,i,P,j=0,Nis=1.0):
-        # Nis eficiencia isentropica
+        # Nis = eficiencia isentropica
             
             self.p[i] = P
             if self.h[i] == '-':  # usa a eficiencia isentropica
@@ -314,31 +205,9 @@ class Ciclo:
         self.h[i] = Prop('H','P',P*1e3,'T',T,self.fluid)/1e3
         self.s[i] = Prop('S','P',P*1e3,'T',T,self.fluid)/1e3
 
-    # Balanço de energia
-    def EnergyB(self,s1,s2,e1,e2):
-        if self.y[s1] == '-':   
-            self.y[s1] = self.y[e1] = (self.y[s2]*(self.h[s2]-self.h[e2]))/(self.h[e1]-self.h[s1])
-            if self.y[s1] > 1 or self.y[s1] < 0:
-                raise ValueError
-        else:
-            self.y[s2] = self.y[e2] = (self.y[s1]*(self.h[s1]-self.h[e1]))/(self.h[e2]-self.h[s2])
-            if self.y[s2] > 1 or self.y[s2] < 0:
-                raise ValueError
+   
 
-    def fluxsep(self,*kargs):
-        # kargs recebe as posicoes
-        # funcao define a fracao massica de fluxo em algum equipamento que divida o fluxo
-        k = 0
-        sf = 0
-        for i in kargs:
-            if self.y[i] != '-':
-                sf += self.y[i]
-                k += 1
-        if k != len(kargs)-1:
-            print('Vazoes insuficientes para calculo')
-        for i in kargs:
-            if self.y[i] == '-':
-                self.y[i] = 1 - sf
+   
     def CameraMistura(self,i,l,Vflash):
         # i estado de saida, l entrada vinda do primero compressor e Vflash é o fluxo vindo da camera de flash 
         fracMass = self.x[Vflash-3]
@@ -440,173 +309,7 @@ class Ciclo:
                 for i in kargs:
                     self.m[i] = mf
 
-    def Exibir(self,*kargs):
-        # argumentos: h, p, s, T, x 
-        
-        for j in kargs:          
-               
-            if j == 'h':
-                hp=['Entalpia (kJ/kg):']
-                for i in range(1,len(self.h)):
-                    if self.h[i] == '-':
-                        hp.append('-')
-                    else:
-                        hp.append(round(self.h[i],2))
-                print(hp)
-            if j == 'p':
-                pp=['Pressao (kPa):']
-                for i in range(1,len(self.p)):
-                    if type(self.p[i]) == str:
-                        pp.append(self.p[i])
-                    else:
-                        pp.append(round(self.p[i],2))
-                print(pp)
-            if j == 's':
-                sp = ['Entropia (kJ/kgK)']
-                for i in range(1,len(self.s)):
-                    if type(self.s[i]) == str:
-                        sp.append(self.s[i])
-                    else:
-                        sp.append(round(self.s[i],3))
-                print(sp)        
-            if j == 'T':
-                Tp =['Temperatura (K):']
-                for i in range(1,len(self.T)):
-                    if self.T[i] == '-':
-                        Tp.append('-')
-                    else:
-                        Tp.append(round(self.T[i],2))
-                print(Tp)
-            if j == 'x':
-                xp = ['Titulo']
-                for i in range(1,len(self.x)):
-                    if self.x[i] == '-':
-                        xp.append('-')
-                    else:
-                        xp.append(round(self.x[i],3))
-                print(xp)
-            if j == 'y':
-                yp = ['Fracao massica']
-                for i in range(1,len(self.y)):
-                    if self.y[i] == '-':
-                        yp.append('-')
-                    else:
-                        yp.append(round(self.y[i],2))
-                print(yp)
-            if j == 'm':
-                mp = ['Vazao massica']
-                for i in range(1,len(self.m)):
-                    if self.m[i] == '-':
-                        mp.append('-')
-                    else:
-                        mp.append(round(self.m[i],10))
-                print(mp)
-            if j == 'q':
-                qp = {}
-                for i in self.q:
-                    qp[i] = round(self.q[i],2)
-                print(qp)
-            if j == 'wb':
-                wbp = {}
-                for i in self.wb:
-                    wbp[i] = round(self.wb[i],2)
-                print(wbp)
-            if j == 'wt':
-                wtp = {}
-                for i in self.wt:
-                    wtp[i] = round(self.wt[i],2)
-                print(wtp)
-            if j == 'wc':
-                wcp = {}
-                for i in self.wc:
-                    wcp[i] = round(self.wc[i],2)
-                print(wcp)
-
-    # Trocador casco e tubo
-    def TCT(self,t,c):
-    # t tubo e c casco
-        mt, mos, mic, hic, his, hos, hot = symbols('mt mos mic hic his hos hot')
-        mc = Eq(mic + mt - mos, 0)
-        ec = Eq(mt*hot + mos*hos -mt*hic - mic*hic - mt*his, 0)
-        dados = [('hos',self.h[c])]
-        var = []
-        if t == 2:
-            dados.append(('hic',self.h[t-1]))
-            if self.m[t] == '-':
-                var.append('mt')
-            else:
-                dados.append(('mt',self.m[t]))
-            if self.m[t-1] == '-':
-                var.append('mic')
-            else:
-                dados.append(('mic',self.m[t-1]))
-            if self.h[t] == '-':
-                var.append('hot')
-            else:
-                dados.append(('hot',self.h[t]))
-        elif t == 1:
-            dados.append(('hic',self.h[t-2]))
-            if self.m[t] == '-':
-                var.append('mt')
-            else:
-                dados.append(('mt',self.m[t]))
-            if self.m[t-1] == '-':
-                var.append('mic')
-            else:
-                dados.append(('mic',self.m[t-2]))
-            if self.h[t] == '-':
-                var.append('hot')
-            else:
-                dados.append(('hot',self.h[t]))
-        else:
-            dados.append(('hic',self.h[t-1]))
-            if self.m[t] == '-':
-                var.append('mt')
-            else:
-                dados.append(('mt',self.m[t]))
-            if self.m[t-1] == '-':
-                var.append('mic')
-            else:
-                dados.append(('mic',self.m[t-1]))
-            if self.h[t] == '-':
-                var.append('hot')
-            else:
-                dados.append(('hot',self.h[t]))
-        dados.append(('hos',self.h[c]))
-        if c == 1:
-            if self.h[c-2] == '-':
-                var.append('his')
-            else:
-                dados.append(('his',self.h[c-2]))
-        else:
-            if self.h[c-1] == '-':
-                var.append('his')
-            else:
-                dados.append(('his',self.h[c-1]))
-        if self.m[c] == '-':
-            var.append('mos')
-        else:
-            dados.append(('mos',self.m[c]))
-        sol = solve((mc.subs(dados),ec.subs(dados)),var)
-        for k in sol:
-            if k == mic:
-                if t == 1:
-                    self.m[t-2] = sol[k]
-                else:
-                    self.m[t-1] = sol[k]
-            if k == mos:
-                self.m[c] = sol[k]
-            if k == mt:
-                self.m[t] = sol[k]
-                if t == 2:
-                    self.m[t-3] = sol[k]
-                else:
-                    self.m[t-2] = sol[k]
-                if c == 1:
-                    self.m[c-2] = sol[k]
-                else:
-                    self.m[c-1] = sol[k]
-        print(sol)
+    
 
     def COP(self,l):
         trabalho = self.TrabC()
@@ -617,8 +320,7 @@ class Ciclo:
             Cop = self.q[l]*self.y[l]/self.TrabC()
         else:
             Cop = self.q[l]/self.TrabC()
-        #    print('Calculo do COP realizado supondo unico fluxo')
-        #print(f'COP Calculado do ciclo: {round(Cop,4)}')
+        
         return round(Cop,4)
 
     def FracaoMass(self,n):
@@ -626,12 +328,6 @@ class Ciclo:
         for i in range(n):
             lista.append(i+1)
             self.y[i+1]= 1/Prop('D','P',self.p[i+1]*1e3 -1000,'T',self.T[i+1],self.fluid)
-        
-
-        
-
-        
-    # Condensador de refrigeração com eficiencia
    
    
     def superAqueci(self,i,Tsa,j=0):
@@ -662,6 +358,10 @@ class Ciclo:
     def CriaTabelaCascata(self,cicloLow):
         wb = Workbook()
         ws = wb.active     
+        colunas = ['B','C','D','E','F','G']
+        for c in colunas:
+            ws.column_dimensions[c].width=25 
+         
         ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)'])
         for i in range(1,len(self.h)):
             ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2)])
@@ -669,9 +369,13 @@ class Ciclo:
             ws.append([i,round(cicloLow.p[i],2),round(cicloLow.h[i],2),round(cicloLow.s[i],4),round(cicloLow.T[i],2)])
         
         ws['F1'] = 'COP'
-        ws['F2'] = self.COP
-        ws['F3'] = 'Eficiencia de refrigeração'
-        ws['F4'] = self.COPcarnot
+        ws['G1'] = self.COP
+        ws['F2'] = 'Trabalho do compressor de alta pressão'
+        ws['G2'] = self.wc
+        ws['H2'] ='kW'
+        ws['F3'] = 'Trabalho do compressor de baixa pressão'
+        ws['G3'] = self.wb
+        ws['H3'] ='kW'
         wb.save(f'Ciclo Cascata - high pressure {self.fluid} - low pressure {cicloLow.fluid} -T0-{int(self.T[1])}.xlsx')
     
     def CriaTabelas1(self,nome):
@@ -687,10 +391,37 @@ class Ciclo:
         ws['H1'] = self.COP
         ws['G2'] = 'Trabalho no compressor'
         ws['H2'] = self.wc
-        ws['G3'] = 'Vazão no evaporador'
+        ws['I2'] ='kW'
+        ws['G3'] = 'Vazão de refrigerante no evaporador'
         ws['H3'] = self.m[1]
         ws['I3'] = 'kg/s'
         ws['B15']= 'Fluido Refrigerante'
+        ws['C15']= self.fluid
+        wb.save(f'Ciclo {nome} - {self.fluid}-COP-{self.COP}.xlsx')
+
+
+    def CriaTabelasFlash(self,nome):
+        wb = Workbook()
+        ws = wb.active
+        colunas = ['B','C','D','E','F']
+        for c in colunas:
+            ws.column_dimensions[c].width=25 
+        ws.column_dimensions['G'].width=30
+        ws.append(['Pontos','Pressao (kPa):','Entalpia (kJ/kg)','Entropia (kJ/kgK)','Temperatura (K)','Volume específico (m³/kg)'])
+        for i in range(1,len(self.h)):
+            ws.append([i,round(self.p[i],2),round(self.h[i],2),round(self.s[i],4),round(self.T[i],2),round(self.y[i],4)])
+        ws['G1'] = 'COP'
+        ws['H1'] = self.COP
+        ws['G3'] = 'Trabalho no compressor de alta pressao'
+        ws['H3'] = self.wc
+        ws['I3'] ='kW'
+        ws['G4'] = 'Trabalho no compressor de baixa pressao'
+        ws['H4'] = self.wb 
+        ws['I4'] ='kW'      
+        ws['G2'] = 'Vazão de refrigerante no evaporador'
+        ws['H2'] = self.m[1]
+        ws['I2'] = 'kg/s'
+        ws['B15']= 'Fluido refrigerante'
         ws['C15']= self.fluid
         wb.save(f'Ciclo {nome} - {self.fluid}-COP-{self.COP}.xlsx')
    

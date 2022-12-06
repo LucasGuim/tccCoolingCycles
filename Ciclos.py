@@ -19,11 +19,11 @@ def CicloCompressaoDeVaporComTemperaturas (fluido,t_evap,t_cond, vazao_refrigera
         ciclo.CondRef(3,P_alta,'sat')
         ciclo.subResfri(3,t_sub)
         ciclo.VE(4,ciclo.p[1],3)
-        mVasao=round(CF/ciclo.ResultadosCf(),2)
+        mVasao=round(CF/ciclo.ResultadosCf(),3)
         ciclo.SetMass(1,mVasao)
         ciclo.Tub(1,2,3,4)
         ciclo.COP = round(ciclo.ResultadosCop(),2)
-        ciclo.wc=ciclo.ResultadosWc()
+        ciclo.wc=round(ciclo.ResultadosWc()*ciclo.m[1],3)
         ciclo.FracaoMass(4)
         ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=t_evap,Tc=t_cond)
     except ValueError:
@@ -50,6 +50,7 @@ def CicloSimplesComTrocador(fluido,t_evap,t_cond,Nis=1.0,CF=0,t_sub=0,t_superA=0
         ciclo.Tub(1,2,3,4)
         ciclo.COP = round(ciclo.ResultadosCop(),3)
         ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=t_evap,Tc=t_cond)
+        ciclo.wc=round(ciclo.ResultadosWc()*ciclo.m[1],3)
         ciclo.FracaoMass(4)
     except ValueError:
         ciclo.COP=0
@@ -104,6 +105,8 @@ def CicloCascata3Pressoes(fluidoSup,fluidoInf,THcond,THevap,TLcond,TLeva,Capacid
     WbTotal= TrabaloCompressorHigh + TrabalhoNoCompressorLow    
     COP = round(CapacidadeFrigorifica/WbTotal,2)
     cicloHigh.COP=COP
+    cicloHigh.wc=TrabaloCompressorHigh
+    cicloHigh.wb=TrabalhoNoCompressorLow
     cicloHigh.CriaTabelaCascata(cicloLow=cicloLow)
     return cicloHigh
     
@@ -145,8 +148,8 @@ def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     #Taxa de calor absorvido no compressor por kg de refrigerante
     qh = ciclo.h[1] - ciclo.h[8]
     #Descobrindo as vazões de refrigerante
-    VazaoEvap = round(CF/qh,3)
-    VazaoCond = round(VazaoEvap/(1-ciclo.x[6]),3)
+    VazaoEvap = round(CF/qh,4)
+    VazaoCond = round(VazaoEvap/(1-ciclo.x[6]),4)
     #Trabalho dos compressores
     WbCompressorBaixa = VazaoEvap*(ciclo.h[2]-ciclo.h[1])
     WbCompressorAlta = VazaoCond*(ciclo.h[4]-ciclo.h[3])
@@ -154,6 +157,10 @@ def CicloDuplaCompressaoComFlash(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
     #Calculo do COP
     COP = round(CF/WbTotal,3)
     ciclo.COP = COP
+    ciclo.wc=WbCompressorAlta
+    ciclo.wb=WbCompressorBaixa
+    ciclo.m[1]=VazaoEvap
+    ciclo.m[5]=VazaoCond
     ciclo.FracaoMass(8)
     return ciclo
     
@@ -195,15 +202,17 @@ def CicloComFlashCaso2(fluido,Tc,Te,Pint,CF,Nis=1.0,Tsub=0,Tsa=0):
         ciclo.T[3]= Prop('T','P',Pint*1e3,'Q',1,fluido)
         ciclo.T[7]= Prop('T','P',Pint*1e3,'Q',0,fluido)
         Ql = ciclo.h[1]-ciclo.h[8]
-        M1 =round(CF/Ql,3)
-        ciclo.m[1]=M1
+        VazaoEvap =round(CF/Ql,4)
+        ciclo.m[1]=VazaoEvap
         BalancoEnergia = round((ciclo.h[2]-ciclo.h[7])/(ciclo.h[6]-ciclo.h[3]),2)
-        M3 = round(M1*BalancoEnergia,2)*-1
-        Wcb = round(M1*(ciclo.h[2]-ciclo.h[1]),2)
-        Wca = round(M3*(ciclo.h[4]-ciclo.h[3]),2)
+        VazaoCond = round(VazaoEvap*BalancoEnergia,2)*-1
+        Wcb = round(VazaoEvap*(ciclo.h[2]-ciclo.h[1]),3)
+        Wca = round(VazaoCond*(ciclo.h[4]-ciclo.h[3]),3)
         Wtotal = Wca + Wcb
         COP = round(CF/Wtotal,2)
         ciclo.COP = COP
+        ciclo.wc = Wca
+        ciclo.wb = Wcb
         ciclo.COPcarnot=ciclo.ResultadosCarnot(Te=Tev,Tc=Tcond)
         ciclo.FracaoMass(8)
     except ValueError:
@@ -221,7 +230,7 @@ def RefrigeranteMaisEficienteCicloSimples(refrigerantes,t_evap,t_cond,Function=C
     for fluido in refrigerantes:
         try:
             ciclo = Function(fluido=fluido,t_evap=t_evap,t_cond=t_cond,t_sub=t_sub,t_superA=t_superA,Nis=Nis,CF=CF)
-            print(f'Refrigerante: {ciclo.fluid} - COP: {ciclo.COP}')
+            
         except :
             ciclo = Ciclo(4,refrigerantes[0])
             ciclo.COP=0                         
@@ -242,7 +251,7 @@ def RefrigeranteMaisEficienteCiclosFlash(refrigerantes,Te,Tc,Pint,CF,Function=Ci
     for fluido in refrigerantes:
         try:
             ciclo = Function(fluido=fluido,Pint=Pint,Tc=Tc,Te=Te,CF=CF,Tsub=Tsub,Tsa=Tsa,Nis=Nis)
-            print(f'Refrigerante: {ciclo.fluid} - COP: {ciclo.COP}')
+            
         except :
             ciclo = Ciclo(4,refrigerantes[0])
             ciclo.COP=0

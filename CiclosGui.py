@@ -37,6 +37,7 @@ while True:
         janela2.bring_to_front()
     if window == janela2 and event == 'Voltar':
         janela2.hide()
+        refrigerantes=[]
         janela1.un_hide()
     if window == janela2   and event == sg.WIN_CLOSED:
         break
@@ -82,7 +83,7 @@ while True:
                 sg.popup_error(cicloFlash1.errorType,title='Error',modal=True)
                 
             if cicloFlash1.COP > 0:
-                cicloFlash1.CriaTabelas1("Flash tipo-2")
+                cicloFlash1.CriaTabelasFlash("Flash tipo-1")
                 sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash1.fluid} e sua tabela foi criada com sucesso !')
         except:
             sg.popup_error('Something went wrong...') 
@@ -124,7 +125,7 @@ while True:
             if cicloFlash2.erro == True:
                 sg.popup_error(cicloFlash2.errorType,title='Error',modal=True)
             if cicloFlash2.COP > 0:
-                cicloFlash2.CriaTabelas1("Flash tipo-1")
+                cicloFlash2.CriaTabelasFlash("Flash tipo-2")
                 sg.popup(f'O refrigerante mais eficiente nessas codições é o {cicloFlash2.fluid} e sua tabela foi criada com sucesso !')           
             
         except:
